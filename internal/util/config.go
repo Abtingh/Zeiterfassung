@@ -15,16 +15,17 @@ type Config struct {
 	DBDATABASE   string `mapstructure:"DB_DATABASE"`   // Name der Datenbank
 	DBPORT       string `mapstructure:"DB_PORT"`       // Port der Datenbank
 	MIGRATIONURL string `mapstructure:"MIGRATION_URL"` // URL für Migrationsdateien
+	JWT_SECRET   string `mapstructure:"JWT_SECRET"`
 }
 
 // LoadConfig lädt die Konfigurationsdaten aus einer .env Datei am angegebenen Pfad.
 // Es gibt die geladene Konfiguration und einen möglichen Fehler zurück.
 func LoadConfig(path string) (config Config, err error) {
-	viper.AddConfigPath(path)      // Setzt den Pfad zur Konfigurationsdatei
-	viper.SetConfigType("env")     // Setzt den Typ der Konfigurationsdatei auf .env
-	viper.SetConfigName("app")     // Setzt den Namen der Konfigurationsdatei auf "app"
+	viper.AddConfigPath(path)  // Setzt den Pfad zur Konfigurationsdatei
+	viper.SetConfigType("env") // Setzt den Typ der Konfigurationsdatei auf .env
+	viper.SetConfigName("app") // Setzt den Namen der Konfigurationsdatei auf "app"
 
-	viper.AutomaticEnv()           // Ermöglicht das Überschreiben durch Umgebungsvariablen
+	viper.AutomaticEnv() // Ermöglicht das Überschreiben durch Umgebungsvariablen
 
 	// Liest die Konfigurationsdatei ein
 	err = viper.ReadInConfig()
