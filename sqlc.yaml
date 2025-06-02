@@ -1,0 +1,25 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    # مسیر فایل‌های اسکیمای SQL (فایل‌های .up.sql)
+    schema:
+      - "internal/db/migration/*.up.sql"
+    # مسیر فایل‌های کوئری (فایل‌های .sql با نام متد sqlc)
+    queries:
+      - "internal/db/query/*.sql"
+    gen:
+      go:
+        package: "db"
+        out: "internal/db/sqlc"
+        # بستهٔ پشتیبان کوئری: pgx/v5
+        sql_package: "github.com/jackc/pgx/v5"
+        emit_json_tags: true
+        emit_interface: true
+        emit_empty_slices: true
+        overrides:
+          # نگاشت صحیح timestamptz به time.Time
+          - db_type: "timestamptz"
+            go_type: "time.Time"
+          # نگاشت UUID به github.com/google/uuid.UUID
+          - db_type: "uuid"
+            go_type: "github.com/google/uuid.UUID"

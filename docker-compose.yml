@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    container_name: zeiterfassung-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: zeiterfassung
+    ports:
+      - "5432:5432" # می‌خواهیم پورت 5432 داخل کانتینر را روی پورت 5432 میزبان expose کنیم
+    volumes:
+      - ./internal/db/migration:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d zeiterfassung" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: zeiterfassung-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@localhost.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80" # pgAdmin را روی پورت 5050 میزبان در دسترس قرار می‌دهیم
+    depends_on:
+      db:
+        condition: service_healthy
+    # توجه: depends_on شرطی می‌گذارد که تا سرویس db سالم (healthy) نشده باشد، سرور pgAdmin را بالا نمی‌آورد.
