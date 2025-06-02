@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	api "github.com/Abtingh/Zeiterfassung/internal/api/handlers"
+	"github.com/Abtingh/Zeiterfassung/internal/server"
 	"github.com/Abtingh/Zeiterfassung/internal/util"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -21,7 +21,7 @@ func main() {
 
 	log.Printf("Debug-Modus: %s\n", cfg.APPDEBUG)
 	log.Printf("Lausche auf Port: %s\n", cfg.APPPORT)
-	
+
 	// Beispiel für den Aufbau einer Datenbank-Verbindungszeichenfolge (DSN)
 	// Die Werte werden aus der Konfiguration geladen
 	dsn := fmt.Sprintf(
@@ -34,7 +34,7 @@ func main() {
 		cfg.DBDATABASE,   // z.B. "zeiterfassung"
 	)
 	log.Printf("DSN: %s\n", dsn)
-	
+
 	// DatenBnk connection pool
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -48,7 +48,6 @@ func main() {
 	poolConfig.MinConns = 2
 	poolConfig.MaxConnIdleTime = 5 * time.Minute
 
-
 	dbPool, err := pgxpool.NewWithConfig(ctx, poolConfig)
 	if err != nil {
 		log.Fatalf("Unable to create a connection pool: %v", err)
@@ -56,10 +55,9 @@ func main() {
 
 	defer dbPool.Close()
 
-
 	// Server-Adresse erstellen und neuen Server starten
 	address := fmt.Sprintf(":%s", cfg.APPPORT)
-	server := api.NewServer(address)
+	server := server.NewServer(address)
 
 	// Server starten und Fehler behandeln
 	if err := server.Start(); err != nil {

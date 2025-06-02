@@ -1,7 +1,6 @@
-package handlers
+package server
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/Abtingh/Zeiterfassung/internal/routes"
@@ -31,6 +30,5 @@ func NewServer(addr string) *Server {
 
 // Start startet den HTTP-Server und gibt ggf. einen Fehler zurück.
 func (s *Server) Start() error {
-	log.Printf("Starting server on %s\n", s.Addr)
 	return http.ListenAndServe(s.Addr, s.Mux)
 }
