@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	db "github.com/Abtingh/Zeiterfassung/internal/db/sqlc"
 	"github.com/Abtingh/Zeiterfassung/internal/server"
 	"github.com/Abtingh/Zeiterfassung/internal/util"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -55,9 +56,11 @@ func main() {
 
 	defer dbPool.Close()
 
+	queries := db.New(dbPool)
+
 	// Server-Adresse erstellen und neuen Server starten
 	address := fmt.Sprintf(":%s", cfg.APPPORT)
-	server := server.NewServer(address)
+	server := server.NewServer(address, queries)
 
 	// Server starten und Fehler behandeln
 	if err := server.Start(); err != nil {

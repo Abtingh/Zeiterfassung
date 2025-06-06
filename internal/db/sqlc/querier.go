@@ -10,6 +10,7 @@ import (
 
 type Querier interface {
 	GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error)
+	UpdateUserTokens(ctx context.Context, arg UpdateUserTokensParams) error
 }
 
 var _ Querier = (*Queries)(nil)

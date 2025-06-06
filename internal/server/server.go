@@ -3,7 +3,9 @@ package server
 import (
 	"net/http"
 
+	"github.com/Abtingh/Zeiterfassung/internal/api/handlers"
 	"github.com/Abtingh/Zeiterfassung/internal/routes"
+	db "github.com/Abtingh/Zeiterfassung/internal/db/sqlc"
 )
 
 // Server repräsentiert den HTTP-Server mit Adresse und Mux.
@@ -13,14 +15,15 @@ type Server struct {
 }
 
 // NewServer erstellt eine neue Server-Instanz mit gegebener Adresse.
-func NewServer(addr string) *Server {
+func NewServer(addr string, queries *db.Queries) *Server {
 	mux := http.NewServeMux()
 
 	// Stellt statische Dateien aus dem Verzeichnis bereit.
 	mux.Handle("/", http.FileServer(http.Dir("./public/public-static")))
 
 	// Registriert die Routen aus dem Package routes.
-	routes.Register(mux)
+	handler := handlers.NewHandler(queries)
+	routes.Register(mux, handler)
 
 	return &Server{
 		Addr: addr,

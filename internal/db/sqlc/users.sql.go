@@ -7,7 +7,8 @@ package db
 
 import (
 	"context"
-	"database/sql"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const getUserByEmail = `-- name: GetUserByEmail :one
@@ -27,20 +28,20 @@ WHERE email = $1
 `
 
 type GetUserByEmailRow struct {
-	ID           int64          `json:"id"`
-	FirstName    sql.NullString `json:"first_name"`
-	LastName     sql.NullString `json:"last_name"`
-	Email        string         `json:"email"`
-	PasswordHash string         `json:"password_hash"`
-	SessionToken sql.NullString `json:"session_token"`
-	CsrfToken    sql.NullString `json:"csrf_token"`
-	Role         RoleEnum       `json:"role"`
-	SupervisorID sql.NullInt64  `json:"supervisor_id"`
-	StartDate    sql.NullTime   `json:"start_date"`
+	ID           int64       `json:"id"`
+	FirstName    pgtype.Text `json:"first_name"`
+	LastName     pgtype.Text `json:"last_name"`
+	Email        string      `json:"email"`
+	PasswordHash string      `json:"password_hash"`
+	SessionToken pgtype.Text `json:"session_token"`
+	CsrfToken    pgtype.Text `json:"csrf_token"`
+	Role         RoleEnum    `json:"role"`
+	SupervisorID pgtype.Int8 `json:"supervisor_id"`
+	StartDate    pgtype.Date `json:"start_date"`
 }
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error) {
-	row := q.db.QueryRowContext(ctx, getUserByEmail, email)
+	row := q.db.QueryRow(ctx, getUserByEmail, email)
 	var i GetUserByEmailRow
 	err := row.Scan(
 		&i.ID,
@@ -55,4 +56,22 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEm
 		&i.StartDate,
 	)
 	return i, err
+}
+
+const updateUserTokens = `-- name: UpdateUserTokens :exec
+UPDATE users
+SET    session_token = $1,
+       csrf_token    = $2
+WHERE  id            = $3
+`
+
+type UpdateUserTokensParams struct {
+	SessionToken pgtype.Text `json:"session_token"`
+	CsrfToken    pgtype.Text `json:"csrf_token"`
+	ID           int64       `json:"id"`
+}
+
+func (q *Queries) UpdateUserTokens(ctx context.Context, arg UpdateUserTokensParams) error {
+	_, err := q.db.Exec(ctx, updateUserTokens, arg.SessionToken, arg.CsrfToken, arg.ID)
+	return err
 }

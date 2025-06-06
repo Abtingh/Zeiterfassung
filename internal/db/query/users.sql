@@ -12,3 +12,10 @@ SELECT
   start_date
 FROM users
 WHERE email = $1;
+
+
+-- name: UpdateUserTokens :exec
+UPDATE users
+SET    session_token = $1,
+       csrf_token    = $2
+WHERE  id            = $3;

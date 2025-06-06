@@ -6,7 +6,7 @@ import (
 	"github.com/Abtingh/Zeiterfassung/internal/api/handlers"
 )
 
-func Register(mux *http.ServeMux) {
-	mux.HandleFunc("/login", handlers.LoginHandler)
-	mux.HandleFunc("/logout", handlers.LogoutHandler)
+func Register(mux *http.ServeMux, handler *handlers.Handler) {
+	mux.HandleFunc("/login", handler.LoginHandler)
+	mux.HandleFunc("/logout", handler.LogoutHandler)
 }

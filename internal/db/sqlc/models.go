@@ -5,13 +5,12 @@
 package db
 
 import (
-	"database/sql"
 	"database/sql/driver"
-	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type NotificationTypeEnum string
@@ -104,7 +103,7 @@ type NotificationLog struct {
 	ID        int64                `json:"id"`
 	UserID    int64                `json:"user_id"`
 	Type      NotificationTypeEnum `json:"type"`
-	Payload   json.RawMessage      `json:"payload"`
+	Payload   []byte               `json:"payload"`
 	SentAt    time.Time            `json:"sent_at"`
 	CreatedAt time.Time            `json:"created_at"`
 }
@@ -112,27 +111,27 @@ type NotificationLog struct {
 type TimeEntry struct {
 	ID        uuid.UUID      `json:"id"`
 	UserID    int64          `json:"user_id"`
-	EntryDate time.Time      `json:"entry_date"`
-	StartTime time.Time      `json:"start_time"`
-	EndTime   time.Time      `json:"end_time"`
-	BreakMin  sql.NullInt32  `json:"break_min"`
-	DurationH string         `json:"duration_h"`
-	Note      sql.NullString `json:"note"`
+	EntryDate pgtype.Date    `json:"entry_date"`
+	StartTime pgtype.Time    `json:"start_time"`
+	EndTime   pgtype.Time    `json:"end_time"`
+	BreakMin  pgtype.Int4    `json:"break_min"`
+	DurationH pgtype.Numeric `json:"duration_h"`
+	Note      pgtype.Text    `json:"note"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 }
 
 type User struct {
-	ID           int64          `json:"id"`
-	FirstName    sql.NullString `json:"first_name"`
-	LastName     sql.NullString `json:"last_name"`
-	Email        string         `json:"email"`
-	PasswordHash string         `json:"password_hash"`
-	SessionToken sql.NullString `json:"session_token"`
-	CsrfToken    sql.NullString `json:"csrf_token"`
-	Role         RoleEnum       `json:"role"`
-	SupervisorID sql.NullInt64  `json:"supervisor_id"`
-	StartDate    sql.NullTime   `json:"start_date"`
-	CreatedAt    time.Time      `json:"created_at"`
-	UpdatedAt    time.Time      `json:"updated_at"`
+	ID           int64       `json:"id"`
+	FirstName    pgtype.Text `json:"first_name"`
+	LastName     pgtype.Text `json:"last_name"`
+	Email        string      `json:"email"`
+	PasswordHash string      `json:"password_hash"`
+	SessionToken pgtype.Text `json:"session_token"`
+	CsrfToken    pgtype.Text `json:"csrf_token"`
+	Role         RoleEnum    `json:"role"`
+	SupervisorID pgtype.Int8 `json:"supervisor_id"`
+	StartDate    pgtype.Date `json:"start_date"`
+	CreatedAt    time.Time   `json:"created_at"`
+	UpdatedAt    time.Time   `json:"updated_at"`
 }
