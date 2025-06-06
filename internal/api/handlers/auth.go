@@ -87,7 +87,24 @@ func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 			// We still continue, but login succeeds without persistence.
 		}
 
-		fmt.Fprintln(w, "Login successful")
+		//fmt.Fprintln(w, "Login successful")
+		switch user.Role {
+		case "supervisor":
+			http.ServeFile(w, r, "./public/public-static/teamleiter_home.html")
+			return
+
+		case "admin":
+			http.ServeFile(w, r, "./public/public-static/admin_home.html")
+			return
+
+		case "accounting":
+			http.ServeFile(w, r, "./public/public-static/buch_home.html")
+			return
+
+		default:
+			http.ServeFile(w, r, "./public/public-static/student_home.html")
+			return
+		}
 
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -126,7 +143,8 @@ func (h *Handler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 		Expires: time.Unix(0, 0),
 	})
 
-	fmt.Fprintln(w, "Logged out successfully!")
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+
 }
 
 // Protected demonstrates a CSRF‑protected endpoint.
