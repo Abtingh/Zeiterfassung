@@ -4,6 +4,21 @@ import "github.com/spf13/viper"
 
 // Config repräsentiert die Konfigurationsstruktur für die Anwendung.
 // Sie enthält alle notwendigen Einstellungen für die App und Datenbankverbindung.
+// Config enthält die Konfigurationseinstellungen für die Anwendung.
+// Die Felder werden über mapstructure mit Umgebungsvariablen oder Konfigurationsdateien befüllt.
+//
+// Felder:
+//   - APPPORT: Port, auf dem die Anwendung läuft.
+//   - APPNAME: Name der Anwendung.
+//   - APPDEBUG: Debug-Modus-Einstellung (z.B. "true" oder "false").
+//   - DBCONNECTION: Typ der Datenbankverbindung (z.B. "mysql", "postgres").
+//   - DBHOST: Hostname oder IP-Adresse der Datenbank.
+//   - DBUSERNAME: Benutzername für die Datenbankverbindung.
+//   - DBPASSWORD: Passwort für die Datenbankverbindung.
+//   - DBDATABASE: Name der zu verwendenden Datenbank.
+//   - DBPORT: Port der Datenbank.
+//   - MIGRATIONURL: Pfad oder URL zu den Migrationsdateien.
+//   - JWT_SECRET: Geheimnis für die Signierung von JWT-Tokens.
 type Config struct {
 	APPPORT      string `mapstructure:"APP_PORT"`      // Port der Anwendung
 	APPNAME      string `mapstructure:"APP_NAME"`      // Name der Anwendung

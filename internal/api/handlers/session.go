@@ -9,6 +9,11 @@ import (
 
 var AuthError = errors.New("unauthorized")
 
+// Authorize checks if the incoming HTTP request is authorized by validating the session token
+// and, for non-GET requests, the CSRF token. It retrieves the session token from the request's
+// cookies and looks up the associated user. For non-GET requests, it also validates the CSRF
+// token from the cookies against the user's stored CSRF token. Returns AuthError if any check
+// fails, otherwise returns nil to indicate successful authorization.
 func (h *Handler) Authorize(r *http.Request) error {
 	// Get session token from cookie
 	sessionCookie, err := r.Cookie("session_token")

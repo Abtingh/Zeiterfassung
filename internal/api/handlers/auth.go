@@ -22,6 +22,21 @@ func NewHandler(q *db.Queries) *Handler {
 }
 
 // LoginHandler handles both GET (serve login form) and POST (authenticate user).
+// LoginHandler handles user login requests.
+// 
+// Supported HTTP methods:
+//   - OPTIONS: Handles CORS preflight requests by setting appropriate headers.
+//   - GET: Serves the login HTML page to the client.
+//   - POST: Processes login form submissions by validating user credentials,
+//     generating session and CSRF tokens, setting cookies, and responding with
+//     a redirect URL based on the user's role.
+//
+// On successful login, session and CSRF tokens are generated, set as cookies,
+// and persisted in the database. The response includes a JSON object with the
+// appropriate redirect URL for the user's role. If authentication fails, an
+// error response is returned.
+//
+// Method not allowed responses are sent for unsupported HTTP methods.
 func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	// Handle CORS preflight
 	if r.Method == http.MethodOptions {

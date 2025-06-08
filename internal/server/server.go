@@ -15,6 +15,16 @@ type Server struct {
 }
 
 // NewServer erstellt eine neue Server-Instanz mit gegebener Adresse.
+// NewServer creates and returns a new Server instance configured with the given address and database queries.
+// It sets up an HTTP request multiplexer, serves static files from the "./public/" directory, and registers
+// application routes using the provided queries. The returned Server is ready to be started to handle HTTP requests.
+//
+// Parameters:
+//   - addr: The address the server will listen on (e.g., ":8080").
+//   - queries: A pointer to a db.Queries instance for database operations.
+//
+// Returns:
+//   - A pointer to the initialized Server.
 func NewServer(addr string, queries *db.Queries) *Server {
 	mux := http.NewServeMux()
 
