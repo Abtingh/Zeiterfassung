@@ -23,7 +23,7 @@ func NewHandler(q *db.Queries) *Handler {
 
 // LoginHandler handles both GET (serve login form) and POST (authenticate user).
 // LoginHandler handles user login requests.
-// 
+//
 // Supported HTTP methods:
 //   - OPTIONS: Handles CORS preflight requests by setting appropriate headers.
 //   - GET: Serves the login HTML page to the client.
@@ -62,7 +62,7 @@ func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 		email := r.FormValue("email")
 		password := r.FormValue("password")
-		log.Printf("Received login: email=%s password=%s", email, password)
+		log.Printf("Received login: email=%s", email)
 
 		// Fetch the user from DB
 		ctx := r.Context()
