@@ -19,3 +19,8 @@ UPDATE users
 SET    session_token = $1,
        csrf_token    = $2
 WHERE  id            = $3;
+
+-- name: GetUserBySessionToken :one
+SELECT * FROM users
+WHERE session_token = $1 AND session_token IS NOT NULL
+LIMIT 1;

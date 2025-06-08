@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', function () {
 // This script handles the logout functionality by sending a POST request to the server
 document.getElementById('logoutBtn').onclick = async function() {
     // Get email from somewhere (e.g., a JS variable or hidden field)
-    alert('Button clicked!');
+
     const email = localStorage.getItem('userEmail'); // or however you store it
 
     // Get CSRF token from cookie (if you store it as a cookie)
@@ -28,8 +28,9 @@ document.getElementById('logoutBtn').onclick = async function() {
     });
 
     if (response.ok) {
-        alert('Logged out!');
-        window.location.href = '/login'; // Redirect to login page
+        localStorage.removeItem('userEmail'); // Clear stored email
+        console.log('Logout successful!');
+        window.location.href = '/'; // Redirect to login page
     } else {
         alert('Logout failed!');
     }

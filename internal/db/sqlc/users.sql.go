@@ -58,6 +58,32 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEm
 	return i, err
 }
 
+const getUserBySessionToken = `-- name: GetUserBySessionToken :one
+SELECT id, first_name, last_name, email, password_hash, session_token, csrf_token, role, supervisor_id, start_date, created_at, updated_at FROM users
+WHERE session_token = $1 AND session_token IS NOT NULL
+LIMIT 1
+`
+
+func (q *Queries) GetUserBySessionToken(ctx context.Context, sessionToken pgtype.Text) (User, error) {
+	row := q.db.QueryRow(ctx, getUserBySessionToken, sessionToken)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.FirstName,
+		&i.LastName,
+		&i.Email,
+		&i.PasswordHash,
+		&i.SessionToken,
+		&i.CsrfToken,
+		&i.Role,
+		&i.SupervisorID,
+		&i.StartDate,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const updateUserTokens = `-- name: UpdateUserTokens :exec
 UPDATE users
 SET    session_token = $1,

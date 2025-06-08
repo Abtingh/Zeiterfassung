@@ -6,10 +6,13 @@ package db
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Querier interface {
 	GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error)
+	GetUserBySessionToken(ctx context.Context, sessionToken pgtype.Text) (User, error)
 	UpdateUserTokens(ctx context.Context, arg UpdateUserTokensParams) error
 }
 

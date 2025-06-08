@@ -1,41 +1,45 @@
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.querySelector('form');
-    form.addEventListener('submit', async function (e) {
+    if (!form) {
+        console.error('Form not found!');
+        return;
+    }
+    
+    form.addEventListener('submit', async function(e) {
         e.preventDefault();
-
+        
         const email = document.getElementById('Email').value;
         const password = document.getElementById('Password').value;
+        
+        const params = new URLSearchParams();
+        params.append('email', email);
+        params.append('password', password);
+        
+        try {
+            const response = await fetch('/login', {
+                method: 'POST',
+                body: params,
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                credentials: 'include'
+            });
 
-        const formData = new FormData();
-        formData.append('email', email);
-        formData.append('password', password);
+            const data = await response.json();
+            console.log("Response status:", response.status);
+            console.log("Response data:", data);
 
-        const response = await fetch('/login', {
-            method: 'POST',
-            body: formData,
-            credentials: 'include'
-        });
-
-        // Try to store email for logout
-        if (response.ok) {
-            localStorage.setItem('userEmail', email);
-
-            // If the response is HTML, redirect to the new page
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('text/html')) {
-                // Replace the current page with the response HTML
-                const html = await response.text();
-                document.open();
-                document.write(html);
-                document.close();
+            if (response.ok && data.redirect) {
+                localStorage.setItem('userEmail', email);
+                console.log("Redirecting to:", data.redirect);
+                window.location.href = data.redirect;
             } else {
-                // Otherwise, handle as text (e.g., error or message)
-                const msg = await response.text();
-                alert(msg);
+                const errorMsg = data.error || 'Login failed!';
+                alert(errorMsg);
             }
-        } else {
-            const msg = await response.text();
-            alert(msg || 'Login failed!');
+        } catch (err) {
+            console.error('Login error:', err);
+            alert('Network error. Please try again.');
         }
     });
 });

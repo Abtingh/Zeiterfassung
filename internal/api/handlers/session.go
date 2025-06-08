@@ -1,56 +1,38 @@
 package handlers
 
 import (
-	"database/sql"
 	"errors"
 	"net/http"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 var AuthError = errors.New("unauthorized")
 
-// Authorize validates the requester using data stored in the database.
-//
-// It replaces the previous in‑memory `users[email]` lookup with a DB query.
-// The function is now a *method* on Handler so it can access h.Q.
-//
-// Workflow:
-//  1. Extract email from form data.
-//  2. Fetch user row with `GetUserByEmail`.
-//  3. Compare session_token cookie and csrf header with DB values.
-//
-// Any mismatch → AuthError.
 func (h *Handler) Authorize(r *http.Request) error {
-	email := r.FormValue("email")
-	if email == "" {
+	// Get session token from cookie
+	sessionCookie, err := r.Cookie("session_token")
+	if err != nil || sessionCookie.Value == "" {
 		return AuthError
 	}
 
-	// ── Get user from DB ─────────────────────────────────────────────
+	// Look up user by session token
 	ctx := r.Context()
-	user, err := h.Q.GetUserByEmail(ctx, email)
+	user, err := h.Q.GetUserBySessionToken(ctx, pgtype.Text{String: sessionCookie.Value, Valid: true})
 	if err != nil {
-		if err == sql.ErrNoRows {
+		return AuthError
+	}
+
+	// For non-GET requests, validate CSRF token
+	if r.Method != http.MethodGet {
+		csrfCookie, err := r.Cookie("csrf_token")
+		if err != nil || csrfCookie.Value == "" {
 			return AuthError
 		}
-		return err // unexpected DB error
-	}
 
-	// ── Validate session token ───────────────────────────────────────
-	stCookie, err := r.Cookie("session_token")
-	if err != nil || stCookie.Value == "" {
-		return AuthError
-	}
-	if !user.SessionToken.Valid || stCookie.Value != user.SessionToken.String {
-		return AuthError
-	}
-
-	// ── Validate CSRF token ──────────────────────────────────────────
-	csrfHeader := r.Header.Get("X-CSRF-Token")
-	if csrfHeader == "" {
-		return AuthError
-	}
-	if !user.CsrfToken.Valid || csrfHeader != user.CsrfToken.String {
-		return AuthError
+		if !user.CsrfToken.Valid || csrfCookie.Value != user.CsrfToken.String {
+			return AuthError
+		}
 	}
 
 	return nil // authorized

@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -14,7 +13,6 @@ import (
 )
 
 // Handler wraps db.Queries so the HTTP handlers can access the database
-// without relying on a global variable or an in‑memory map.
 type Handler struct {
 	Q *db.Queries
 }
@@ -25,6 +23,14 @@ func NewHandler(q *db.Queries) *Handler {
 
 // LoginHandler handles both GET (serve login form) and POST (authenticate user).
 func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
+	// Handle CORS preflight
+	if r.Method == http.MethodOptions {
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8080")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
 	log.Printf("→ %s %s", r.Method, r.URL.Path)
 
 	switch r.Method {
@@ -33,30 +39,32 @@ func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 
 	case http.MethodPost:
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8080")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+		w.Header().Set("Content-Type", "application/json")
+
 		// Parse form fields
 		if err := r.ParseForm(); err != nil {
-			http.Error(w, fmt.Sprintf("ParseForm() error: %v", err), http.StatusBadRequest)
+			http.Error(w, `{"error":"ParseForm error"}`, http.StatusBadRequest)
 			return
 		}
 
 		email := r.FormValue("email")
 		password := r.FormValue("password")
+		log.Printf("Received login: email=%s password=%s", email, password)
 
-		// Fetch the user from DB instead of map[string]User
+		// Fetch the user from DB
 		ctx := r.Context()
 		user, err := h.Q.GetUserByEmail(ctx, email)
 		if err != nil {
-			if err == sql.ErrNoRows {
-				http.Error(w, "Invalid username or password", http.StatusUnauthorized)
-				return
-			}
-			log.Printf("GetUserByEmail error: %v", err)
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			http.Error(w, `{"error":"Invalid username or password"}`, http.StatusUnauthorized)
 			return
 		}
 
+		log.Printf("User role for %s: '%s'", email, user.Role) // Debug log
+
 		if !util.CheckPasswordHash(password, user.PasswordHash) {
-			http.Error(w, "Invalid username or password", http.StatusUnauthorized)
+			http.Error(w, `{"error":"Invalid username or password"}`, http.StatusUnauthorized)
 			return
 		}
 
@@ -70,11 +78,14 @@ func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 			Value:    sessionToken,
 			Expires:  time.Now().Add(2 * time.Hour),
 			HttpOnly: true,
+			Path:     "/",
 		})
 		http.SetCookie(w, &http.Cookie{
-			Name:    "csrf_token",
-			Value:   csrfToken,
-			Expires: time.Now().Add(2 * time.Hour),
+			Name:     "csrf_token",
+			Value:    csrfToken,
+			Expires:  time.Now().Add(2 * time.Hour),
+			HttpOnly: false,
+			Path:     "/",
 		})
 
 		// Persist tokens in the database
@@ -84,30 +95,58 @@ func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 			ID:           user.ID,
 		}); err != nil {
 			log.Printf("UpdateUserTokens error: %v", err)
-			// We still continue, but login succeeds without persistence.
+			// Continue, but login succeeds without persistence.
 		}
 
-		//fmt.Fprintln(w, "Login successful")
+		// Respond with JSON containing redirect URL based on role
+		var redirect string
 		switch user.Role {
 		case "supervisor":
-			http.ServeFile(w, r, "./public/public-static/teamleiter_home.html")
-			return
-
+			redirect = "/home/vorgesetzer"
 		case "admin":
-			http.ServeFile(w, r, "./public/public-static/admin_home.html")
-			return
-
+			redirect = "/home/admin"
 		case "accounting":
-			http.ServeFile(w, r, "./public/public-static/buch_home.html")
-			return
-
+			redirect = "/home/buchhaltung"
 		default:
-			http.ServeFile(w, r, "./public/public-static/student_home.html")
-			return
+			redirect = "/home/student"
 		}
+		log.Printf("Redirecting to: %s", redirect) // Debug log
+		fmt.Fprintf(w, `{"redirect":"%s"}`, redirect)
+		return
 
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+// HomeHandler serves the appropriate home page based on the user's role.
+func (h *Handler) HomeHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodOptions {
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8080")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	// Ensure user is authenticated
+	if err := h.Authorize(r); err != nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	// Serve the correct home page
+	switch r.URL.Path {
+	case "/home/vorgesetzer":
+		http.ServeFile(w, r, "./public/public-static/teamleiter_home.html")
+	case "/home/admin":
+		http.ServeFile(w, r, "./public/public-static/admin_home.html")
+	case "/home/buchhaltung":
+		http.ServeFile(w, r, "./public/public-static/buch_home.html")
+	case "/home/student":
+		http.ServeFile(w, r, "./public/public-static/student_home.html")
+	default:
+		http.NotFound(w, r)
 	}
 }
 
@@ -121,7 +160,7 @@ func (h *Handler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 	ctx := r.Context()
 
-	// Best‑effort DB cleanup; ignore errors so logout is always successful.
+	// Best-effort DB cleanup; ignore errors so logout is always successful.
 	if user, err := h.Q.GetUserByEmail(ctx, email); err == nil {
 		_ = h.Q.UpdateUserTokens(ctx, db.UpdateUserTokensParams{
 			SessionToken: pgtype.Text{Valid: false},
@@ -142,12 +181,9 @@ func (h *Handler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 		Value:   "",
 		Expires: time.Unix(0, 0),
 	})
-
-	http.Redirect(w, r, "/", http.StatusSeeOther)
-
 }
 
-// Protected demonstrates a CSRF‑protected endpoint.
+// Protected demonstrates a CSRF-protected endpoint.
 func (h *Handler) Protected(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)

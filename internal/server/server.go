@@ -19,7 +19,7 @@ func NewServer(addr string, queries *db.Queries) *Server {
 	mux := http.NewServeMux()
 
 	// Stellt statische Dateien aus dem Verzeichnis bereit.
-	mux.Handle("/", http.FileServer(http.Dir("./public/public-static")))
+	mux.Handle("/", http.FileServer(http.Dir("./public/")))
 
 	// Registriert die Routen aus dem Package routes.
 	handler := handlers.NewHandler(queries)
