@@ -4,26 +4,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/src/styles/login.css">
-    <title>Zeiterfassung</title>
-    <style>
-        body {
-            background-color: gray;
-        }
-    </style>
+    <link rel="stylesheet" href="../src/styles/login.css">
+    <title>Login</title>
 </head>
 
 <body>
-    <form action="/login" method="post">
-        <div class="container login">
-            <h1>Login</h1>
-            <label for="Email">Email</label>
-            <input type="email" id="Email" placeholder="E-Mail" name="email" required>
-            <label for="Password">Password</label>
-            <input type="password" id="Password" placeholder="Passwort" name="password" required>
-            <button type="submit" id="loginButton">Login</button>
+    <header>
+        <div id="logoContainer">
+            <h2>Zeiterfassung</h2>
         </div>
-    </form>
+        <div><button id="faqButton">FAQ</button></div>
+    </header>
+
+    <main>
+        <div class="left mainContent">
+            <img src="../assets/login_pic.svg" class="loginImage" alt="Login Image">
+        </div>
+        <div class="mainContent">
+            <form action="/login" method="post">
+                <div class="loginForm">
+                    <div id="formContent">
+                        <div id="fields">
+                            <h1>Logge Dich ein!</h1>
+                            <div id="labels">
+                                <div class="email label">
+                                    <label for="Email">Email</label>
+                                    <input type="email" id="Email" placeholder="E-Mail" name="email" required>
+                                </div>
+                                <div class="password label">
+                                    <label for="Password">Password</label>
+                                    <input type="password" id="Password" placeholder="Passwort" name="password" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="actions">
+                            <button type="submit" id="loginButton">Login</button>
+                            <a href="/forgot-password">Passwort vergessen?</a>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </main>
     <script src="/src/services/login.js"></script>
 </body>
 
