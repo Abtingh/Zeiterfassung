@@ -1,18 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin homepage</title>
-    <style>
-        body {
-            background-color: gray;
-        }
-    </style>
+    <link rel="stylesheet" href="../src/styles/home.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
-    <h1> This is admin Home page</h1>
-    <button id="logoutBtn">Logout</button>
+    <div id="header">
+        <div id="logoContainer">
+            <h2>Zeiterfassung</h2>
+        </div>
+        <div id="iconProfile">
+            <a href="#">
+                <img src="../assets/iconProfile.svg" alt="User Icon">
+            </a>
+            <div id="profileDropDown" class="dropdown-menu hidden">
+                <ul>
+                    <li><a href="#" id="profileLink">Profil</a></li>
+                    <li><a href="#" id="resetPasswordLink">Passwort zurücksetzen</a></li>
+                    <li><a href="#" id="logoutLink logoutBtn">Ausloggen</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div id="main">
+        <div id="mainContent">
+            <h2 class="nameHolder">Hi, </h2>
+        </div>
+        <div id="navbar">
+            <ul>
+                <li><img src="../assets/iconHome.svg" alt="Home"><a href="#">Übersicht</a></li>
+                <li><img src="../assets/iconAddUser.svg" alt="Anlegen"><a href="#">Benutzer anlegen</a></li>
+                <li><img src="../assets/iconManageUser.svg" alt="Verwalten"><a href="#">Benutzer verwalten</a></li>
+            </ul>
+        </div>
+    </div>
     <script src="../src/services/logout.js"></script>
+    <script src="../src/services/profile.js"></script>
 </body>
+
 </html>

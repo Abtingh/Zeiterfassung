@@ -1,0 +1,151 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+#header {
+    background-color: #fff;
+    height: 100px;
+    width: 100%;
+    box-shadow:  0px 2px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 28px 48px;
+    position: relative;
+    z-index: 100;
+}
+
+#logoContainer h2 {
+    font-size: 32px;
+    font-family: sans-serif;
+}
+
+#iconProfile {
+    width: 55px;
+    height: 55px;
+    position: relative;
+}
+
+#iconProfile img {
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    transition: filter 0.3s ease;
+}
+
+#iconProfile img:hover {
+    filter: brightness(0) saturate(100%) invert(62%) sepia(45%) saturate(593%) hue-rotate(127deg) brightness(96%) contrast(89%);
+}
+
+#iconProfile img.clicked {
+    transform: scale(0.95);
+    filter: brightness(0) saturate(100%) invert(62%) sepia(45%) saturate(593%) hue-rotate(127deg) brightness(80%) contrast(120%) drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 65px;
+    right: 0;
+    background-color: #fff;
+    border: 1px solid #F2F4F7;
+    border-radius: 8px;
+    box-shadow: 0px 4px 16px rgba(0, 0, 0,0.15);
+    min-width: 200px;
+    z-index: 1000;
+    overflow: hidden;
+    transform: translateY(-10px);
+    transition: all 0.2s ease-in-out;
+}
+
+.dropdown-menu ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.dropdown-menu a {
+    display: block;
+    padding: 10px 16px;
+    color: #333;
+    text-decoration: none;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    transition: background-color 0.3s;
+}
+
+.dropdown-menu a:hover {
+    background-color: #F2F4F7;
+}
+
+.hidden {
+    display: none;
+}
+
+.show {
+    display: block;
+}
+
+#main {
+    display: flex;
+    flex-direction: row;
+    height: calc(100vh - 100px);
+}
+
+#mainContent {
+    flex: 1;
+    padding: 40px 0 0 42px;
+    background-color: #fff;
+    order: 2;
+    position: relative;
+}
+
+#nameHolder {
+    font-size: 32px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+#navbar {
+    background-color: #E0E6ED;
+    width: 346px;
+    min-height: 90vh;
+    padding: 66px 23px 0 23px;
+    order: 1;
+}
+
+#navbar ul {
+    list-style: none;
+    padding: 0;
+}
+
+#navbar ul li {
+    margin-bottom: 17px;
+    display: flex;
+    border-radius: 14px;
+}
+
+#navbar ul li:hover {
+    background-color: rgba(79, 195, 172, 0.35) ;
+    cursor: pointer;
+    height: 55px;
+}
+
+#navbar ul li img {
+    min-width: 45px;
+    min-height: 45px;
+    padding: 5px 5px 5px 7px;
+}
+
+#navbar ul li a {
+    text-decoration: none;
+    color: #000;
+    font-size: 24px;
+    font-family: 'Inter', sans-serif;
+    padding: 13px 0;
+    display: flex;
+    align-items: center;
+    font-family: 'Inter', sans-serif;
+}
