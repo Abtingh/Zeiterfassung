@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
 // This script handles the logout functionality by sending a POST request to the server
-document.getElementById('logoutBtn').onclick = async function() {
+document.getElementById('logoutLink').onclick = async function() {
     // Get email from somewhere (e.g., a JS variable or hidden field)
 
     const email = localStorage.getItem('userEmail'); // or however you store it
