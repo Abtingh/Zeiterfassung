@@ -11,6 +11,7 @@ import (
 )
 
 type Querier interface {
+	GetPublicUserBySessionToken(ctx context.Context, sessionToken pgtype.Text) (GetPublicUserBySessionTokenRow, error)
 	GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error)
 	GetUserBySessionToken(ctx context.Context, sessionToken pgtype.Text) (User, error)
 	UpdateUserTokens(ctx context.Context, arg UpdateUserTokensParams) error

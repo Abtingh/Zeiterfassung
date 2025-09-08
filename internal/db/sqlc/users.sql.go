@@ -11,6 +11,38 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const getPublicUserBySessionToken = `-- name: GetPublicUserBySessionToken :one
+SELECT id, first_name, last_name, email, role, supervisor_id, start_date
+FROM users
+WHERE session_token = $1
+LIMIT 1
+`
+
+type GetPublicUserBySessionTokenRow struct {
+	ID           int64       `json:"id"`
+	FirstName    pgtype.Text `json:"first_name"`
+	LastName     pgtype.Text `json:"last_name"`
+	Email        string      `json:"email"`
+	Role         RoleEnum    `json:"role"`
+	SupervisorID pgtype.Int8 `json:"supervisor_id"`
+	StartDate    pgtype.Date `json:"start_date"`
+}
+
+func (q *Queries) GetPublicUserBySessionToken(ctx context.Context, sessionToken pgtype.Text) (GetPublicUserBySessionTokenRow, error) {
+	row := q.db.QueryRow(ctx, getPublicUserBySessionToken, sessionToken)
+	var i GetPublicUserBySessionTokenRow
+	err := row.Scan(
+		&i.ID,
+		&i.FirstName,
+		&i.LastName,
+		&i.Email,
+		&i.Role,
+		&i.SupervisorID,
+		&i.StartDate,
+	)
+	return i, err
+}
+
 const getUserByEmail = `-- name: GetUserByEmail :one
 SELECT
   id,

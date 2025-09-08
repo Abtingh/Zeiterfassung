@@ -24,3 +24,9 @@ WHERE  id            = $3;
 SELECT * FROM users
 WHERE session_token = $1 AND session_token IS NOT NULL
 LIMIT 1;
+
+-- name: GetPublicUserBySessionToken :one
+SELECT id, first_name, last_name, email, role, supervisor_id, start_date
+FROM users
+WHERE session_token = $1
+LIMIT 1;
