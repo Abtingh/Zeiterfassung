@@ -7,8 +7,6 @@
     <title>Student homepage</title>
     <link rel="stylesheet" href="../src/styles/home.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-
 </head>
 
 <body>
@@ -31,18 +29,27 @@
     </div>
     <div id="main">
         <div id="mainContent">
-            <h2 class="nameHolder">Hi, </h2>
+            <h2 class="nameHolder"></h2>
+            <div class="weekOverview">
+                <div class="monat"><p>Juni 2025</p></div>
+                <div class="WochenStatus">
+                    <div class="weekCard">
+                        <div class="weekHolder"><p>1.Woche</p></div>
+                        <div class="statusHolder accepted"><p>Bestätigt</p></div>
+                    </div>
+                    <!-- <div class="divider"></div> -->
+                </div>
+            </div>
         </div>
         <div id="navbar">
             <ul>
                 <li><img src="../assets/iconHome.svg" alt="Home"><a href="#">Übersicht</a></li>
-                <li><img src="../assets/iconAddUser.svg" alt="Anlegen"><a href="#">Benutzer anlegen</a></li>
-                <li><img src="../assets/iconManageUser.svg" alt="Verwalten"><a href="#">Benutzer verwalten</a></li>
-            </ul>
+                <li><img src="../assets/iconHome.svg" alt="TimeAdding"><a href="#">Zeit Eintragen</a></li>
+             </ul>
         </div>
     </div>
     <script src="../src/services/logout.js"></script>
-    <script src="../src/services/profile.js"></script>
+    <script src="../src/services/profileDropdown.js"></script>
     <script src="../src/services/userInfo.js"></script>
 </body>
 

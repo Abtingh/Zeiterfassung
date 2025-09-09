@@ -31,7 +31,7 @@ async function loadUserInfo() {
 function updateUserDisplay(firstName) {
     const nameHolder = document.querySelector('.nameHolder');
     if (nameHolder) {
-        nameHolder.textContent = `Hi, ${firstName}`;
+        nameHolder.textContent = `Hi, ${firstName}!`;
     }
 }
 
