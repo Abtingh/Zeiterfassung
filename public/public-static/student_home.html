@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student homepage</title>
     <link rel="stylesheet" href="../src/styles/home.css">
+    <link rel="stylesheet" href="../src/styles/Wocheübersicht.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
@@ -31,26 +32,33 @@
         <div id="mainContent">
             <h2 class="nameHolder"></h2>
             <div class="weekOverview">
-                <div class="monat"><p>Juni 2025</p></div>
-                <div class="WochenStatus">
+                <div class="monthHead">
+                    <button id="prevBtn" class="iconBtn" aria-label="Vorheriger Monat">‹</button>
+                    <div id="monthLabel"></div>
+                    <button id="nextBtn" class="iconBtn" aria-label="Nächster Monat">›</button>
+                </div>
+                <div class="WochenStatus" id="wochenList">
                     <div class="weekCard">
-                        <div class="weekHolder"><p>1.Woche</p></div>
-                        <div class="statusHolder accepted"><p>Bestätigt</p></div>
+                        <div class="weekHolder">
+                        </div>
+                        <div class="statusHolder">
+                        </div>
                     </div>
-                    <!-- <div class="divider"></div> -->
                 </div>
             </div>
         </div>
         <div id="navbar">
             <ul>
                 <li><img src="../assets/iconHome.svg" alt="Home"><a href="#">Übersicht</a></li>
-                <li><img src="../assets/iconHome.svg" alt="TimeAdding"><a href="#">Zeit Eintragen</a></li>
-             </ul>
+                <li><img src="../assets/IconZeitEintragen.svg" alt="TimeAdding"><a href="#">Zeit Eintragen</a></li>
+            </ul>
         </div>
     </div>
     <script src="../src/services/logout.js"></script>
     <script src="../src/services/profileDropdown.js"></script>
     <script src="../src/services/userInfo.js"></script>
+    <script src="../src/services/weekCalculator.js"></script>
+
 </body>
 
 </html>
