@@ -5,7 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Teamleiter homepage</title>
+    <!-- <link rel="stylesheet" href="../src/styles/Wocheübersicht.css"> -->
     <link rel="stylesheet" href="../src/styles/home.css">
+    <link rel="stylesheet" href="../src/styles/WocheübersichtTeamleader.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 
@@ -13,9 +15,11 @@
 
 <body>
     <div id="header">
+
         <div id="logoContainer">
             <h2>Zeiterfassung</h2>
         </div>
+
         <div id="iconProfile">
             <a href="#">
                 <img src="../assets/iconProfile.svg" alt="User Icon">
@@ -28,22 +32,53 @@
                 </ul>
             </div>
         </div>
+        
     </div>
+
     <div id="main">
+
         <div id="mainContent">
-            <h2 class="nameHolder">Hi, </h2>
+            <h2 class="nameHolder"></h2>
+
+            <div class="weekOverview">
+                <div class="toolbar">
+                    <div class="studentDropDown">
+                        <select id="studentSelect"></select>
+                    </div>
+
+                    <div class="monthHead">
+                        <button id="prevBtn" class="iconBtn" aria-label="Vorheriger Monat">‹</button>
+                        <div id="monthLabel"></div>
+                        <button id="nextBtn" class="iconBtn" aria-label="Nächster Monat">›</button>
+                    </div>
+
+                    <div class="toolbar-spacer"></div>
+                </div>
+                <div class="WochenStatus" id="wochenList">
+                    <div class="weekCard">
+                        <div class="weekHolder">
+                        </div>
+                        <div class="statusHolder">
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
+
         <div id="navbar">
             <ul>
                 <li><img src="../assets/iconHome.svg" alt="Home"><a href="#">Übersicht</a></li>
-                <li><img src="../assets/iconAddUser.svg" alt="Anlegen"><a href="#">Benutzer anlegen</a></li>
-                <li><img src="../assets/iconManageUser.svg" alt="Verwalten"><a href="#">Benutzer verwalten</a></li>
+                <li><img src="../assets/IconZeitEintragen.svg" alt=""><a href="#">Zeiten genehmigen</a></li>
             </ul>
         </div>
+
     </div>
+
     <script src="../src/services/logout.js"></script>
     <script src="../src/services/profileDropdown.js"></script>
     <script src="../src/services/userInfo.js"></script>
+    <script src="../src/services/weekCalculator.js"></script>
+    <script src="../src/services/studentDropdown.js"></script>
 </body>
 
 </html>
