@@ -207,3 +207,17 @@ func (h *Handler) Protected(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 	fmt.Fprintf(w, "CSRF validation successful! Welcome, %s", email)
 }
+
+func (h *Handler) ResetPasswordHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	if err := h.Authorize(r); err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	http.ServeFile(w, r, "./public/public-static/reset_password.html")
+}

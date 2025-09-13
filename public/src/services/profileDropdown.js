@@ -40,15 +40,14 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('resetPasswordLink').addEventListener('click', function(e) {
         e.preventDefault();
         console.log('Reset Password clicked');
-        // Add your reset password logic here
+        window.location.href = '/reset-passwort';
         closeDropdown();
     });
     
     document.getElementById('logoutLink').addEventListener('click', function(e) {
         e.preventDefault();
         console.log('Logout clicked');
-        // Call your existing logout function or redirect
-        // You can use your existing logout logic here
+        window.location.href = '/logout';
         closeDropdown();
     });
     
