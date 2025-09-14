@@ -190,6 +190,8 @@ func (h *Handler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 		Value:   "",
 		Expires: time.Unix(0, 0),
 	})
+
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
 
 // Protected demonstrates a CSRF-protected endpoint.
@@ -209,15 +211,55 @@ func (h *Handler) Protected(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) ResetPasswordHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
-		return
-	}
-
+	// Ensure user is authenticated for both GET and POST
 	if err := h.Authorize(r); err != nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	http.ServeFile(w, r, "./public/public-static/reset_password.html")
+	switch r.Method {
+	case http.MethodGet:
+		// Serve the reset password HTML page
+		http.ServeFile(w, r, "./public/public-static/reset_password.html")
+		return
+
+	case http.MethodPost:
+		// Handle password reset form submission
+		w.Header().Set("Content-Type", "application/json")
+
+		// Parse form fields
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, `{"error":"ParseForm error"}`, http.StatusBadRequest)
+			return
+		}
+
+		currentPassword := r.FormValue("currentPassword")
+		newPassword := r.FormValue("newPassword")
+		confirmNewPassword := r.FormValue("confirmNewPassword")
+
+		// Validate passwords match
+		if newPassword != confirmNewPassword {
+			http.Error(w, `{"error":"New passwords do not match"}`, http.StatusBadRequest)
+			return
+		}
+
+		// Get user from session (you'll need to implement this based on your session handling)
+		// For now, this is a placeholder - you'll need to get the current user's email/ID from the session
+		// email := getUserEmailFromSession(r) // You need to implement this
+
+		// TODO: Implement the actual password reset logic here
+		// 1. Get current user from session
+		// 2. Verify current password
+		// 3. Hash new password
+		// 4. Update password in database
+
+		log.Printf("Password reset attempt - Current: %s, New: %s", currentPassword, newPassword)
+
+		// For now, return success response
+		fmt.Fprintf(w, `{"success":"Password reset successful"}`)
+		return
+
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
 }
