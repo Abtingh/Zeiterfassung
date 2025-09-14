@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/Abtingh/Zeiterfassung/internal/api/handlers"
-	"github.com/Abtingh/Zeiterfassung/internal/routes"
 	db "github.com/Abtingh/Zeiterfassung/internal/db/sqlc"
+	"github.com/Abtingh/Zeiterfassung/internal/routes"
 )
 
 // Server repräsentiert den HTTP-Server mit Adresse und Mux.
@@ -28,8 +28,14 @@ type Server struct {
 func NewServer(addr string, queries *db.Queries) *Server {
 	mux := http.NewServeMux()
 
-	// Stellt statische Dateien aus dem Verzeichnis bereit.
-	mux.Handle("/", http.FileServer(http.Dir("./public/")))
+	// Serve static files from the public directory
+	mux.Handle("/assets/", http.FileServer(http.Dir("./public/")))
+	mux.Handle("/src/", http.FileServer(http.Dir("./public/")))
+
+	// Redirect root path to login
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/login", http.StatusFound)
+	})
 
 	// Registriert die Routen aus dem Package routes.
 	handler := handlers.NewHandler(queries)
