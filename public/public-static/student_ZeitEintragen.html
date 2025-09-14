@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student homepage</title>
+    <link rel="stylesheet" href="../src/styles/home.css">
+    <link rel="stylesheet" href="../src/styles/zeitEintragen.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div id="header">
+        <div id="logoContainer">
+            <h2>Zeiterfassung</h2>
+        </div>
+        <div id="iconProfile">
+            <a href="#">
+                <img src="../assets/iconProfile.svg" alt="User Icon">
+            </a>
+            <div id="profileDropDown" class="dropdown-menu hidden">
+                <ul>
+                    <li><a href="#" id="profileLink">Profil</a></li>
+                    <li><a href="#" id="resetPasswordLink">Passwort zurücksetzen</a></li>
+                    <li><a href="#" id="logoutLink">Ausloggen</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div id="main">
+        <div id="mainContent">
+            <div id="tableHeader">
+                <div id="dateAndWeek">
+                    <div id="weekHolder">
+                        <p>3.Woche</p>
+                    </div>
+                    <div id="dateHolder">
+                        <button id="prevBtn" class="iconBtn" aria-label="Vorheriger Monat">‹</button>
+                        <div id="date"> 16.06 - 22.06</div>
+                        <button id="nextBtn" class="iconBtn" aria-label="Nächster Monat">›</button>
+                    </div>
+                </div>
+                <div id="statusHolder">
+                    <p>Status: <span id="statusText">Bestätigt</span></p>
+                </div>
+            </div>
+            <div id="tableBody">
+                <table id="timeTable">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Datum</th>
+                            <th>Von</th>
+                            <th>Bis</th>
+                            <th>Stunden</th>
+                            <th>Pause</th>
+                            <th>Arbeits-<br>stunden</th>
+                            <th>Besonderheiten<br>(Bsp. Krank/<br>Urlaub)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="day-label">Mo</td>
+                            <td>
+                                <p class="first day">16.06</p>
+                            </td>
+                            <td><input type="time" class="time-input"></td>
+                            <td><input type="time" class="time-input"></td>
+                            <td class="calculated-hours">-</td>
+                            <td><input type="number" class="pause-input" step="0.5" min="0" placeholder="0"></td>
+                            <td class="work-hours">-</td>
+                            <td><input type="text" class="notes-input"></td>
+                        </tr>
+                        <tr>
+                            <td class="day-label">Di</td>
+                            <td>
+                                <p class="second day">17.06</p>
+                            </td>
+                            <td><input type="time" class="time-input"></td>
+                            <td><input type="time" class="time-input"></td>
+                            <td class="calculated-hours">-</td>
+                            <td><input type="number" class="pause-input" step="0.5" min="0" placeholder="0"></td>
+                            <td class="work-hours">-</td>
+                            <td><input type="text" class="notes-input"></td>
+                        </tr>
+                        <tr>
+                            <td class="day-label">Mi</td>
+                            <td>
+                                <p class="third day">18.06</p>
+                            </td>
+                            <td><input type="time" class="time-input"></td>
+                            <td><input type="time" class="time-input"></td>
+                            <td class="calculated-hours">-</td>
+                            <td><input type="number" class="pause-input" step="0.5" min="0" placeholder="0"></td>
+                            <td class="work-hours">-</td>
+                            <td><input type="text" class="notes-input"></td>
+                        </tr>
+                        <tr>
+                            <td class="day-label">Do</td>
+                            <td>
+                                <p class="fourth day">19.06</p>
+                            </td>
+                            <td><input type="time" class="time-input"></td>
+                            <td><input type="time" class="time-input"></td>
+                            <td class="calculated-hours">-</td>
+                            <td><input type="number" class="pause-input" step="0.5" min="0" placeholder="0"></td>
+                            <td class="work-hours">-</td>
+                            <td><input type="text" class="notes-input"></td>
+                        </tr>
+                        <tr>
+                            <td class="day-label">Fr</td>
+                            <td>
+                                <p class="fifth day">20.06</p>
+                            </td>
+                            <td><input type="time" class="time-input"></td>
+                            <td><input type="time" class="time-input"></td>
+                            <td class="calculated-hours">-</td>
+                            <td><input type="number" class="pause-input" step="0.5" min="0" placeholder="0"></td>
+                            <td class="work-hours">-</td>
+                            <td><input type="text" class="notes-input"></td>
+                        </tr>
+                        <tr>
+                            <td class="day-label">Sa</td>
+                            <td>
+                                <p class="sixth day">21.06</p>
+                            </td>
+                            <td><input type="time" class="time-input" value="00:00" disabled></td>
+                            <td><input type="time" class="time-input" value="00:00" disabled></td>
+                            <td class="calculated-hours">0</td>
+                            <td>
+                                <p class="pause-time">0</p>
+                            </td>
+                            <td class="work-hours">0</td>
+                            <td><input type="text" class="notes-input" disabled></td>
+                        </tr>
+                        <tr>
+                            <td class="day-label">So</td>
+                            <td>
+                                <p class="seventh day">22.06</p>
+                            </td>
+                            <td><input type="time" class="time-input" value="00:00" disabled></td>
+                            <td><input type="time" class="time-input" value="00:00" disabled></td>
+                            <td class="calculated-hours">0</td>
+                            <td>
+                                <p class="pause-time">0</p>
+                            </td>
+                            <td class="work-hours">0</td>
+                            <td><input type="text" class="notes-input" disabled></td>
+                        </tr>
+                        <tr class="total-row">
+                            <td colspan="6" class="total-label">Gesamt:</td>
+                            <td id="totalWorkHours">-</td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="btnGroup">
+                <button id="resetBtn">Reset</button>
+                <button id="submitBtn">Senden</button>
+            </div>
+        </div>
+        <div id="navbar">
+            <ul>
+                <li><img src="../assets/iconHome.svg" alt="Home"><a href="#">Übersicht</a></li>
+                <li><img src="../assets/IconZeitEintragen.svg" alt="TimeAdding"><a href="#">Zeit Eintragen</a></li>
+            </ul>
+        </div>
+    </div>
+    <script src="../src/services/logout.js"></script>
+    <script src="../src/services/profileDropdown.js"></script>
+    <script src="../src/services/userInfo.js"></script>
+    <script src="../src/services/weekCalculator.js"></script>
+    <script src="../src/services/timeCalculator.js"></script>
+
+</body>
+
+</html>
