@@ -119,3 +119,24 @@
     color: #FFA629;
     font-weight: bold;
 }
+
+/* Hover effects for clickable week cards */
+.weekCard {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.weekCard:hover {
+    background-color: rgba(74, 72, 171, 0.05);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.weekCard:hover .weekHolder {
+    background-color: #1370AC;
+    color: white;
+}
+
+.weekCard:active {
+    transform: translateY(0);
+}

@@ -1,14 +1,45 @@
-
 function fridaysInMonth(year, month0) {
+  // Find the first Friday of the month
   const daysInMonth = new Date(year, month0 + 1, 0).getDate();
   const firstDow = new Date(year, month0, 1).getDay(); 
-  const firstFridayDate = 1 + ((5 - firstDow + 7) % 7); 
-
-  const fridays = [];
-  for (let d = firstFridayDate; d <= daysInMonth; d += 7) {
-    fridays.push(new Date(year, month0, d));
+  const firstFridayDate = 1 + ((5 - firstDow + 7) % 7);
+  
+  if (firstFridayDate > daysInMonth) {
+    return []; // No Fridays in this month
   }
-  return fridays; 
+  
+  const firstFriday = new Date(year, month0, firstFridayDate);
+  
+  // Work month starts on Monday after first Friday
+  const workStartMonday = new Date(firstFriday);
+  workStartMonday.setDate(firstFriday.getDate() + 3); // Friday + 3 days = Monday
+  
+  // Find next month's first Friday
+  const nextMonth = month0 + 1 > 11 ? 0 : month0 + 1;
+  const nextYear = month0 + 1 > 11 ? year + 1 : year;
+  const nextMonthDays = new Date(nextYear, nextMonth + 1, 0).getDate();
+  const nextFirstDow = new Date(nextYear, nextMonth, 1).getDay();
+  const nextFirstFridayDate = 1 + ((5 - nextFirstDow + 7) % 7);
+  
+  let nextFirstFriday;
+  if (nextFirstFridayDate <= nextMonthDays) {
+    nextFirstFriday = new Date(nextYear, nextMonth, nextFirstFridayDate);
+  } else {
+    // If no Friday in next month, extend to end of next month
+    nextFirstFriday = new Date(nextYear, nextMonth + 1, 0);
+  }
+  
+  // Generate all Fridays from work start until and INCLUDING the week with next month's first Friday
+  const workFridays = [];
+  let currentFriday = new Date(workStartMonday);
+  currentFriday.setDate(workStartMonday.getDate() + 4); // Monday + 4 = Friday
+  
+  while (currentFriday <= nextFirstFriday) {
+    workFridays.push(new Date(currentFriday));
+    currentFriday.setDate(currentFriday.getDate() + 7); // Next Friday
+  }
+  
+  return workFridays;
 }
 
 
@@ -37,10 +68,51 @@ function renderMonthWeeks(year, month0) {
   container.innerHTML = '';
 
   const fridays = fridaysInMonth(year, month0);
+  
+  // Helper function to get week dates based on Friday
+  function getWeekDates(fridayDate) {
+    const friday = new Date(fridayDate);
+    const monday = new Date(friday);
+    monday.setDate(friday.getDate() - 4); // Friday - 4 days = Monday
+    
+    const dates = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(monday);
+      date.setDate(monday.getDate() + i);
+      dates.push(date);
+    }
+    return dates;
+  }
+  
+  // Helper function to format date as DD.MM
+  function formatDate(date) {
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    return `${day}.${month}`;
+  }
+  
+  console.log(`=== ${new Intl.DateTimeFormat('de-DE', { month: 'long', year: 'numeric' }).format(new Date(year, month0))} Week Ranges ===`);
 
   fridays.forEach((date, i) => {
+    const weekDates = getWeekDates(date);
+    const monday = weekDates[0]; // Monday
+    const sunday = weekDates[6]; // Sunday
+    
+    console.log(`${i + 1}. Woche: ${formatDate(monday)} - ${formatDate(sunday)} (Friday: ${formatDate(date)})`);
+    
     const card = document.createElement('div');
     card.className = 'weekCard';
+    
+    // Add click functionality to navigate to time entry page
+    card.addEventListener('click', function() {
+      const weekNumber = i + 1;
+      const month = month0 + 1; // Convert to 1-indexed
+      const url = `student_ZeitEintragen.html?year=${year}&month=${month}&week=${weekNumber}`;
+      window.location.href = url;
+    });
+    
+    // Add hover effect
+    card.style.cursor = 'pointer';
 
     const left = document.createElement('div');
     left.className = 'weekHolder';

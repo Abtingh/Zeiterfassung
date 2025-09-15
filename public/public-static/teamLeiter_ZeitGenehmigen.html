@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student homepage</title>
     <link rel="stylesheet" href="../src/styles/home.css">
-    <link rel="stylesheet" href="../src/styles/zeitEintragen.css">
+    <link rel="stylesheet" href="../src/styles/zeitGenehmigen.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
@@ -40,6 +40,14 @@
                         <div id="date"> 16.06 - 22.06</div>
                         <button id="nextBtn" class="iconBtn" aria-label="Nächster Monat">›</button>
                     </div>
+                </div>
+                <div id="studentDropDown">
+                    <select id="studentSelect">
+                        <option value="" disabled selected>Student auswählen</option>
+                        <option value="student1">Max Mustermann</option>
+                        <option value="student2">Erika Musterfrau</option>
+                        <option value="student3">John Doe</option>
+                    </select>
                 </div>
                 <div id="statusHolder">
                     <p>Status: <span id="statusText">Bestätigt</span></p>
@@ -157,14 +165,15 @@
                 </table>
             </div>
             <div id="btnGroup">
-                <button id="resetBtn">Reset</button>
-                <button id="submitBtn">Senden</button>
+                <button id="editBtn">korrigieren</button>
+                <button id="submitBtn">Freigeben</button>
             </div>
         </div>
         <div id="navbar">
             <ul>
-                <li><img src="../assets/iconHome.svg" alt="Home"><a href="./student_home.html">Übersicht</a></li>
-                <li><img src="../assets/IconZeitEintragen.svg" alt="TimeAdding"><a href="./student_ZeitEintragen.html">Zeit Eintragen</a></li>
+                <li><img src="../assets/iconHome.svg" alt="Home"><a href="./teamleiter_home.html">Übersicht</a></li>
+                <li><img src="../assets/IconZeitEintragen.svg" alt=""><a href="./teamLeiter_ZeitGenehmigen.html">Zeiten
+                        genehmigen</a></li>
             </ul>
         </div>
     </div>
