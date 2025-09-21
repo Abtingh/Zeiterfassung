@@ -1,54 +1,57 @@
+// util/config.go
 package util
 
-import "github.com/spf13/viper"
+import (
+	"errors"
+	"strings"
 
-// Config repräsentiert die Konfigurationsstruktur für die Anwendung.
-// Sie enthält alle notwendigen Einstellungen für die App und Datenbankverbindung.
-// Config enthält die Konfigurationseinstellungen für die Anwendung.
-// Die Felder werden über mapstructure mit Umgebungsvariablen oder Konfigurationsdateien befüllt.
-//
-// Felder:
-//   - APPPORT: Port, auf dem die Anwendung läuft.
-//   - APPNAME: Name der Anwendung.
-//   - APPDEBUG: Debug-Modus-Einstellung (z.B. "true" oder "false").
-//   - DBCONNECTION: Typ der Datenbankverbindung (z.B. "mysql", "postgres").
-//   - DBHOST: Hostname oder IP-Adresse der Datenbank.
-//   - DBUSERNAME: Benutzername für die Datenbankverbindung.
-//   - DBPASSWORD: Passwort für die Datenbankverbindung.
-//   - DBDATABASE: Name der zu verwendenden Datenbank.
-//   - DBPORT: Port der Datenbank.
-//   - MIGRATIONURL: Pfad oder URL zu den Migrationsdateien.
-//   - JWT_SECRET: Geheimnis für die Signierung von JWT-Tokens.
+	"github.com/spf13/viper"
+)
+
 type Config struct {
-	APPPORT      string `mapstructure:"APP_PORT"`      // Port der Anwendung
-	APPNAME      string `mapstructure:"APP_NAME"`      // Name der Anwendung
-	APPDEBUG     string `mapstructure:"APP_DEBUG"`     // Debug-Modus-Einstellung
-	DBCONNECTION string `mapstructure:"DB_CONNECTION"` // Art der Datenbankverbindung
-	DBHOST       string `mapstructure:"DB_HOST"`       // Datenbank-Host
-	DBUSERNAME   string `mapstructure:"DB_USERNAME"`   // Datenbank-Benutzername
-	DBPASSWORD   string `mapstructure:"DB_PASSWORD"`   // Datenbank-Passwort
-	DBDATABASE   string `mapstructure:"DB_DATABASE"`   // Name der Datenbank
-	DBPORT       string `mapstructure:"DB_PORT"`       // Port der Datenbank
-	MIGRATIONURL string `mapstructure:"MIGRATION_URL"` // URL für Migrationsdateien
+	APPPORT      string `mapstructure:"APP_PORT"`
+	APPNAME      string `mapstructure:"APP_NAME"`
+	APPDEBUG     string `mapstructure:"APP_DEBUG"`
+	DBCONNECTION string `mapstructure:"DB_CONNECTION"`
+	DBHOST       string `mapstructure:"DB_HOST"`
+	DBUSERNAME   string `mapstructure:"DB_USERNAME"`
+	DBPASSWORD   string `mapstructure:"DB_PASSWORD"`
+	DBDATABASE   string `mapstructure:"DB_DATABASE"`
+	DBPORT       string `mapstructure:"DB_PORT"`
+	MIGRATIONURL string `mapstructure:"MIGRATION_URL"`
 	JWT_SECRET   string `mapstructure:"JWT_SECRET"`
 }
 
-// LoadConfig lädt die Konfigurationsdaten aus einer .env Datei am angegebenen Pfad.
-// Es gibt die geladene Konfiguration und einen möglichen Fehler zurück.
-func LoadConfig(path string) (config Config, err error) {
-	viper.AddConfigPath(path)  // Setzt den Pfad zur Konfigurationsdatei
-	viper.SetConfigType("env") // Setzt den Typ der Konfigurationsdatei auf .env
-	viper.SetConfigName("app") // Setzt den Namen der Konfigurationsdatei auf "app"
+func LoadConfig() (config Config, err error) {
+	// No files. Env only.
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	viper.AutomaticEnv()
 
-	viper.AutomaticEnv() // Ermöglicht das Überschreiben durch Umgebungsvariablen
-
-	// Liest die Konfigurationsdatei ein
-	err = viper.ReadInConfig()
-	if err != nil {
-		return
+	// Bind the keys so Unmarshal includes env values
+	keys := []string{
+		"APP_PORT", "APP_NAME", "APP_DEBUG",
+		"DB_CONNECTION", "DB_HOST", "DB_USERNAME", "DB_PASSWORD", "DB_DATABASE", "DB_PORT",
+		"MIGRATION_URL", "JWT_SECRET",
+	}
+	for _, k := range keys {
+		_ = viper.BindEnv(k)
 	}
 
-	// Wandelt die gelesenen Werte in die Config-Struktur um
-	err = viper.Unmarshal(&config)
-	return
+	// Optional sane defaults (won’t override env)
+	viper.SetDefault("APP_PORT", "8080")
+	viper.SetDefault("APP_DEBUG", "false")
+	viper.SetDefault("DB_PORT", "5432")
+	viper.SetDefault("MIGRATION_URL", "file://internal/db/migration")
+
+	if err = viper.Unmarshal(&config); err != nil {
+		return config, err
+	}
+	// Minimal validation
+	if config.JWT_SECRET == "" {
+		return config, errors.New("missing required env: JWT_SECRET")
+	}
+	if config.DBDATABASE == "" || config.DBHOST == "" {
+		return config, errors.New("missing required DB_* envs")
+	}
+	return config, nil
 }

@@ -15,7 +15,7 @@ import (
 func main() {
 
 	// Konfiguration laden
-	cfg, err := util.LoadConfig(".")
+	cfg, err := util.LoadConfig()
 	if err != nil {
 		log.Fatalf("Konfiguration konnte nicht geladen werden: %v", err)
 	}
