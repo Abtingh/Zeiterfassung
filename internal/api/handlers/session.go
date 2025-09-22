@@ -2,8 +2,10 @@ package handlers
 
 import (
 	"errors"
+	"log"
 	"net/http"
 
+	db "github.com/Abtingh/Zeiterfassung/internal/db/sqlc"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -18,15 +20,21 @@ func (h *Handler) Authorize(r *http.Request) error {
 	// Get session token from cookie
 	sessionCookie, err := r.Cookie("session_token")
 	if err != nil || sessionCookie.Value == "" {
+		log.Printf("Authorize failed: no session token cookie. Error: %v", err)
 		return ErrUnauthorized
 	}
+
+	log.Printf("Authorize: Found session token: %s", sessionCookie.Value[:10]+"...")
 
 	// Look up user by session token
 	ctx := r.Context()
 	user, err := h.Q.GetUserBySessionToken(ctx, pgtype.Text{String: sessionCookie.Value, Valid: true})
 	if err != nil {
+		log.Printf("Authorize failed: GetUserBySessionToken error: %v", err)
 		return ErrUnauthorized
 	}
+
+	log.Printf("Authorize: Found user %s for session token", user.Email)
 
 	// For non-GET requests, validate CSRF token
 	if r.Method != http.MethodGet {
@@ -41,4 +49,25 @@ func (h *Handler) Authorize(r *http.Request) error {
 	}
 
 	return nil // authorized
+}
+
+// GetCurrentUser retrieves the current user from the session token in the request
+func (h *Handler) GetCurrentUser(r *http.Request) (*db.User, error) {
+	// Get session token from cookie
+	sessionCookie, err := r.Cookie("session_token")
+	if err != nil || sessionCookie.Value == "" {
+		log.Printf("GetCurrentUser failed: no session token cookie. Error: %v", err)
+		return nil, ErrUnauthorized
+	}
+
+	// Look up user by session token
+	ctx := r.Context()
+	user, err := h.Q.GetUserBySessionToken(ctx, pgtype.Text{String: sessionCookie.Value, Valid: true})
+	if err != nil {
+		log.Printf("GetCurrentUser failed: GetUserBySessionToken error: %v", err)
+		return nil, ErrUnauthorized
+	}
+
+	log.Printf("GetCurrentUser: Found user %s", user.Email)
+	return &user, nil
 }

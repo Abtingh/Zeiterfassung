@@ -5,41 +5,22 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
     }
     
-    form.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
+    // Simply let the form submit naturally - no JavaScript fetch
+    // The backend will handle the redirect after successful authentication
+    form.addEventListener('submit', function(e) {
         const email = document.getElementById('Email').value;
         const password = document.getElementById('Password').value;
         
-        const params = new URLSearchParams();
-        params.append('email', email);
-        params.append('password', password);
-        
-        try {
-            const response = await fetch('/login', {
-                method: 'POST',
-                body: params,
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                credentials: 'include'
-            });
-
-            const data = await response.json();
-            console.log("Response status:", response.status);
-            console.log("Response data:", data);
-
-            if (response.ok && data.redirect) {
-                localStorage.setItem('userEmail', email);
-                console.log("Redirecting to:", data.redirect);
-                window.location.href = data.redirect;
-            } else {
-                const errorMsg = data.error || 'Login failed!';
-                alert(errorMsg);
-            }
-        } catch (err) {
-            console.error('Login error:', err);
-            alert('Network error. Please try again.');
+        if (!email || !password) {
+            e.preventDefault();
+            alert('Please fill in both email and password');
+            return;
         }
+        
+        // Store email in localStorage for potential use later
+        localStorage.setItem('userEmail', email);
+        
+        // Let the form submit naturally - the backend redirect will work
+        console.log('Submitting login form for:', email);
     });
 });

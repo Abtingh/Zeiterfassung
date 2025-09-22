@@ -29,8 +29,8 @@ func NewServer(addr string, queries *db.Queries) *Server {
 	mux := http.NewServeMux()
 
 	// Serve static files from the public directory
-	mux.Handle("/assets/", http.FileServer(http.Dir("./public/")))
-	mux.Handle("/src/", http.FileServer(http.Dir("./public/")))
+	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("./public/assets/"))))
+	mux.Handle("/src/", http.StripPrefix("/src/", http.FileServer(http.Dir("./public/src/"))))
 
 	// Redirect root path to login
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {

@@ -1,0 +1,142 @@
+
+
+.weekOverview {
+    background-color: #F5F5F5;
+    width: 710px;
+    margin: auto;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.monthHead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 50%; 
+    gap: 16px;
+    font-family: 'Inter', sans-serif;
+    font-size: 28px;
+    font-weight: 600;
+    margin: 30px 0 0;
+}
+
+.iconBtn {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    font-size: 30px;
+    line-height: 30px;
+}
+
+.WochenStatus{
+    width: 640px;
+    border-radius: 10px;
+    margin-top: 40px;
+    overflow: hidden;         
+    padding: 0 20px;          
+}
+
+.weekCard{
+  position: relative;       
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 auto 10px;
+  width: 600px;
+  height: 90px;
+  padding: 0 20px;
+  font-size: 24px;
+}
+
+.weekCard:not(:first-child)::before{
+  content: "";
+  position: absolute;
+  left: 0;                  
+  right: 0;
+  top: 0;
+  height: 0;                /* خود خط را با border می‌سازیم */
+  border-top: 1px solid rgba(36,36,38,0.05); /* #242426 @ 20% */
+  box-shadow: 0 1px 4px rgba(36,36,38,0.10); /* Drop shadow */
+}
+
+.weekHolder{
+    background-color: #fff;
+    width: 200px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 500;
+}
+
+.weekHolder img{
+    min-width: 25px;
+    min-height: 25px;
+    padding-right: 21px;
+}
+
+
+.statusHolder {
+    width: 200px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    justify-content:end;
+    align-items: center;
+    font-weight: 500;
+}
+
+
+.statusHolder img{
+    min-width: 25px;
+    min-height: 25px;
+    padding-left: 10px;
+}
+
+.accepted {
+    color: #14AE5C;
+    font-weight: bold;
+}
+
+.open {
+    color: #A8A4A4;
+    font-weight: bold;
+}
+
+.needReview {
+    color: #F24822;
+    font-weight: bold;
+}
+
+.sent {
+    color: #FFA629;
+    font-weight: bold;
+}
+
+/* Hover effects for clickable week cards */
+.weekCard {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.weekCard:hover {
+    background-color: rgba(74, 72, 171, 0.05);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.weekCard:hover .weekHolder {
+    background-color: #1370AC;
+    color: white;
+}
+
+.weekCard:active {
+    transform: translateY(0);
+}

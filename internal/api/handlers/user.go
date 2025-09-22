@@ -2,12 +2,16 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 func (h *Handler) MeHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("→ %s %s", r.Method, r.URL.Path)
+	log.Printf("MeHandler: Cookies received: %v", r.Header.Get("Cookie"))
+
 	// Set CORS headers for all requests
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
@@ -28,10 +32,13 @@ func (h *Handler) MeHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Validate session authorization
 	if err := h.Authorize(r); err != nil {
+		log.Printf("MeHandler: Authorization failed: %v", err)
 		w.Header().Set("Content-Type", "application/json")
 		http.Error(w, `{"error":"Unauthorized"}`, http.StatusUnauthorized)
 		return
 	}
+
+	log.Printf("MeHandler: Authorization successful")
 
 	// Get session token from cookie
 	sessionCookie, err := r.Cookie("session_token")

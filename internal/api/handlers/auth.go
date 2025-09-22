@@ -52,11 +52,10 @@ func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 
 	case http.MethodPost:
-		w.Header().Set("Content-Type", "application/json")
-
 		// Parse form fields
 		if err := r.ParseForm(); err != nil {
-			http.Error(w, `{"error":"ParseForm error"}`, http.StatusBadRequest)
+			// For form submission errors, redirect back to login with error
+			http.Redirect(w, r, "/login?error=parse_error", http.StatusSeeOther)
 			return
 		}
 
@@ -68,14 +67,16 @@ func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		user, err := h.Q.GetUserByEmail(ctx, email)
 		if err != nil {
-			http.Error(w, `{"error":"Invalid username or password"}`, http.StatusUnauthorized)
+			log.Printf("GetUserByEmail failed for %s: %v", email, err)
+			http.Redirect(w, r, "/login?error=invalid_credentials", http.StatusSeeOther)
 			return
 		}
 
 		log.Printf("User role for %s: '%s'", email, user.Role) // Debug log
 
 		if !util.CheckPasswordHash(password, user.PasswordHash) {
-			http.Error(w, `{"error":"Invalid username or password"}`, http.StatusUnauthorized)
+			log.Printf("Password check failed for %s", email)
+			http.Redirect(w, r, "/login?error=invalid_credentials", http.StatusSeeOther)
 			return
 		}
 
@@ -83,13 +84,14 @@ func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		sessionToken := util.GenerateToken(32)
 		csrfToken := util.GenerateToken(32)
 
-		// Set cookies
+		// Set cookies with more explicit settings
 		http.SetCookie(w, &http.Cookie{
 			Name:     "session_token",
 			Value:    sessionToken,
 			Expires:  time.Now().Add(2 * time.Hour),
 			HttpOnly: true,
 			Path:     "/",
+			SameSite: http.SameSiteLaxMode,
 		})
 		http.SetCookie(w, &http.Cookie{
 			Name:     "csrf_token",
@@ -97,7 +99,10 @@ func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 			Expires:  time.Now().Add(2 * time.Hour),
 			HttpOnly: false,
 			Path:     "/",
+			SameSite: http.SameSiteLaxMode,
 		})
+
+		log.Printf("Cookies set for user %s - session: %s..., csrf: %s...", email, sessionToken[:10], csrfToken[:10])
 
 		// Persist tokens in the database
 		if err := h.Q.UpdateUserTokens(ctx, db.UpdateUserTokensParams{
@@ -109,10 +114,9 @@ func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 			// Continue, but login succeeds without persistence.
 		}
 
-		// Respond with JSON containing redirect URL - everyone goes to /home
-		redirect := "/home"
-		log.Printf("Redirecting to: %s", redirect) // Debug log
-		fmt.Fprintf(w, `{"redirect":"%s"}`, redirect)
+		// Redirect directly to /home instead of sending JSON
+		log.Printf("Redirecting user %s to /home", email)
+		http.Redirect(w, r, "/home", http.StatusSeeOther)
 		return
 
 	default:
@@ -122,60 +126,40 @@ func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 // HomeHandler serves the appropriate home page based on the user's role.
 func (h *Handler) HomeHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("→ %s %s", r.Method, r.URL.Path)
+	log.Printf("HomeHandler: Cookies received: %v", r.Header.Get("Cookie"))
+
 	if r.Method == http.MethodOptions {
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 		w.WriteHeader(http.StatusNoContent)
 		return
-	}
-
-	// Ensure user is authenticated
+	} // Ensure user is authenticated
 	if err := h.Authorize(r); err != nil {
+		log.Printf("Authorization failed: %v", err)
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
-	// For /home path, determine the correct page based on user role
-	if r.URL.Path == "/home" {
-		// Get user from session to determine role
-		ctx := r.Context()
-		sessionToken, err := r.Cookie("session_token")
-		if err != nil {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-			return
-		}
-
-		user, err := h.Q.GetUserBySessionToken(ctx, pgtype.Text{String: sessionToken.Value, Valid: true})
-		if err != nil {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-			return
-		}
-
-		// Serve the appropriate home page based on user role
-		switch user.Role {
-		case "supervisor":
-			http.ServeFile(w, r, "./public/public-static/teamleiter_home.html")
-		case "admin":
-			http.ServeFile(w, r, "./public/public-static/admin_home.html")
-		case "accounting":
-			http.ServeFile(w, r, "./public/public-static/buch_home.html")
-		default:
-			http.ServeFile(w, r, "./public/public-static/student_home.html")
-		}
+	// Get current user from session
+	user, err := h.GetCurrentUser(r)
+	if err != nil {
+		log.Printf("GetCurrentUser failed: %v", err)
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
-	// Serve the correct home page for role-specific paths (if still needed)
-	switch r.URL.Path {
-	case "/home/vorgesetzer":
+	log.Printf("Serving home page for user %s with role: %s", user.Email, user.Role)
+
+	// Serve the correct home page based on user's role
+	switch user.Role {
+	case "supervisor":
 		http.ServeFile(w, r, "./public/public-static/teamleiter_home.html")
-	case "/home/admin":
+	case "admin":
 		http.ServeFile(w, r, "./public/public-static/admin_home.html")
-	case "/home/buchhaltung":
+	case "accounting":
 		http.ServeFile(w, r, "./public/public-static/buch_home.html")
-	case "/home/student":
+	default: // student or any other role
 		http.ServeFile(w, r, "./public/public-static/student_home.html")
-	default:
-		http.NotFound(w, r)
 	}
 }
 
@@ -282,4 +266,35 @@ func (h *Handler) ResetPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
+}
+
+// StudentZeitEintragenHandler serves the Zeit Eintragen page for students
+func (h *Handler) StudentZeitEintragenHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("→ %s %s", r.Method, r.URL.Path)
+
+	// Only allow GET requests
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Ensure user is authenticated
+	if err := h.Authorize(r); err != nil {
+		log.Printf("StudentZeitEintragenHandler: Authorization failed: %v", err)
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	// Get current user to verify they are a student (optional security check)
+	user, err := h.GetCurrentUser(r)
+	if err != nil {
+		log.Printf("StudentZeitEintragenHandler: GetCurrentUser failed: %v", err)
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	log.Printf("Serving Zeit Eintragen page for user %s with role: %s", user.Email, user.Role)
+
+	// Serve the Zeit Eintragen HTML file
+	http.ServeFile(w, r, "./public/public-static/student_ZeitEintragen.html")
 }
