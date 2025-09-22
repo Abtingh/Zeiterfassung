@@ -109,18 +109,8 @@ func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 			// Continue, but login succeeds without persistence.
 		}
 
-		// Respond with JSON containing redirect URL based on role
-		var redirect string
-		switch user.Role {
-		case "supervisor":
-			redirect = "/home/vorgesetzer"
-		case "admin":
-			redirect = "/home/admin"
-		case "accounting":
-			redirect = "/home/buchhaltung"
-		default:
-			redirect = "/home/student"
-		}
+		// Respond with JSON containing redirect URL - everyone goes to /home
+		redirect := "/home"
 		log.Printf("Redirecting to: %s", redirect) // Debug log
 		fmt.Fprintf(w, `{"redirect":"%s"}`, redirect)
 		return
@@ -144,7 +134,37 @@ func (h *Handler) HomeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Serve the correct home page
+	// For /home path, determine the correct page based on user role
+	if r.URL.Path == "/home" {
+		// Get user from session to determine role
+		ctx := r.Context()
+		sessionToken, err := r.Cookie("session_token")
+		if err != nil {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
+
+		user, err := h.Q.GetUserBySessionToken(ctx, pgtype.Text{String: sessionToken.Value, Valid: true})
+		if err != nil {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
+
+		// Serve the appropriate home page based on user role
+		switch user.Role {
+		case "supervisor":
+			http.ServeFile(w, r, "./public/public-static/teamleiter_home.html")
+		case "admin":
+			http.ServeFile(w, r, "./public/public-static/admin_home.html")
+		case "accounting":
+			http.ServeFile(w, r, "./public/public-static/buch_home.html")
+		default:
+			http.ServeFile(w, r, "./public/public-static/student_home.html")
+		}
+		return
+	}
+
+	// Serve the correct home page for role-specific paths (if still needed)
 	switch r.URL.Path {
 	case "/home/vorgesetzer":
 		http.ServeFile(w, r, "./public/public-static/teamleiter_home.html")

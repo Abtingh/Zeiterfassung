@@ -16,7 +16,7 @@ import (
 func Register(mux *http.ServeMux, handler *handlers.Handler) {
 	mux.HandleFunc("/login", handler.LoginHandler)
 	mux.HandleFunc("/logout", handler.LogoutHandler)
-	mux.HandleFunc("/home/", handler.HomeHandler)
+	mux.HandleFunc("/home", handler.HomeHandler)
 	mux.HandleFunc("/reset-passwort/", handler.ResetPasswordHandler)
 	mux.HandleFunc("/me", handler.MeHandler)
 	
