@@ -148,17 +148,21 @@ func (h *Handler) HomeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("Serving home page for user %s with role: %s", user.Email, user.Role)
+	log.Printf("Serving home page for user %s with role: '%s' (length: %d)", user.Email, user.Role, len(user.Role))
 
 	// Serve the correct home page based on user's role
 	switch user.Role {
 	case "supervisor":
+		log.Printf("Serving teamleiter_home.html for supervisor")
 		http.ServeFile(w, r, "./public/public-static/teamleiter_home.html")
 	case "admin":
+		log.Printf("Serving admin_home.html for admin")
 		http.ServeFile(w, r, "./public/public-static/admin_home.html")
 	case "accounting":
+		log.Printf("Serving buch_home.html for accounting")
 		http.ServeFile(w, r, "./public/public-static/buch_home.html")
 	default: // student or any other role
+		log.Printf("Serving student_home.html for role: '%s'", user.Role)
 		http.ServeFile(w, r, "./public/public-static/student_home.html")
 	}
 }

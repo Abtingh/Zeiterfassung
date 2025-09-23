@@ -1,0 +1,167 @@
+.toolbar{
+    width: 640px;               
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;
+    gap:0;
+    margin: 50px 0 0;
+    position: relative;
+}
+
+.studentDropDown select{
+    appearance: none;          
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background: #e9eaed;        
+    border: none;
+    border-radius: 999px;
+    padding: 10px 36px 10px 16px;
+    font: 600 16px 'Inter', sans-serif;
+    color: #111;
+    cursor: pointer;
+    outline: none;
+    position: relative;
+    width: 200px;
+}
+
+.studentDropDown{
+    flex: 0 0 auto; 
+    position: relative; 
+    margin-left: 40px;
+}
+
+.studentDropDown::after{
+    content: "▾";
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-52%);
+    font-size: 14px;
+    color: #111;
+    pointer-events: none;
+}
+
+.monthHead{
+  flex: 0 0 auto;                        
+  display:flex;
+  align-items:center;
+  justify-content: space-between; 
+  width: 230px;
+  position: absolute;
+  right: 40px;               
+}
+
+#monthLabel{
+    flex:1;
+    text-align:center;
+    font-family:'Inter', sans-serif;
+    font-size:20px;
+}
+
+.iconBtn{
+    width:34px;
+    height:34px;
+    border-radius:8px;
+    border:none;
+    background:transparent;
+    cursor:pointer;
+    font-size:25px;
+    line-height:30px;
+}
+
+.weekOverview {
+    background-color: #F5F5F5;
+    width: 710px;
+    margin: auto;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.WochenStatus{
+    width: 640px;
+    border-radius: 10px;
+    margin-top: 40px;
+    overflow: hidden;         
+    padding: 0 20px;          
+}
+
+.weekCard{
+  position: relative;       
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 auto 10px;
+  width: 600px;
+  height: 90px;
+  padding: 0 20px;
+  font-size: 24px;
+}
+
+.weekCard:not(:first-child)::before{
+  content: "";
+  position: absolute;
+  left: 0;                  
+  right: 0;
+  top: 0;
+  height: 0;                
+  border-top: 1px solid rgba(36,36,38,0.05); 
+  box-shadow: 0 1px 4px rgba(36,36,38,0.10); 
+}
+
+.weekHolder{
+    background-color: #fff;
+    width: 200px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 500;
+}
+
+.weekHolder img{
+    min-width: 25px;
+    min-height: 25px;
+    padding-right: 21px;
+}
+
+
+.statusHolder {
+    width: 200px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    justify-content:end;
+    align-items: center;
+    font-weight: 500;
+}
+
+
+.statusHolder img{
+    min-width: 25px;
+    min-height: 25px;
+    padding-left: 10px;
+}
+
+.accepted {
+    color: #14AE5C;
+    font-weight: bold;
+}
+
+.open {
+    color: #A8A4A4;
+    font-weight: bold;
+}
+
+.needReview {
+    color: #F24822;
+    font-weight: bold;
+}
+
+.sent {
+    color: #FFA629;
+    font-weight: bold;
+}
