@@ -1,0 +1,8 @@
+data/
+*.log
+.git/
+.DS_Store
+.env
+.vscode/
+generate_hash.go
+insert_users.sql
