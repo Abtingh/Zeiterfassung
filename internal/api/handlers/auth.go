@@ -48,6 +48,14 @@ func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case http.MethodGet:
+		// Check if user already has a valid session token
+		if err := h.Authorize(r); err == nil {
+			// User is already authenticated, redirect to home
+			log.Printf("User already authenticated, redirecting to /home")
+			http.Redirect(w, r, "/home", http.StatusSeeOther)
+			return
+		}
+		// User is not authenticated, serve login page
 		http.ServeFile(w, r, "./public/public-static/login.html")
 		return
 

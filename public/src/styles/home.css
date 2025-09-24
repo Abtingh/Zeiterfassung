@@ -131,7 +131,6 @@
 #navbar ul li:hover {
     background-color: rgba(79, 195, 172, 0.35) ;
     cursor: pointer;
-    height: 55px;
 }
 
 #navbar ul li img {
