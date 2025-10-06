@@ -4,5 +4,3 @@ data/
 .DS_Store
 .env
 .vscode/
-generate_hash.go
-insert_users.sql
