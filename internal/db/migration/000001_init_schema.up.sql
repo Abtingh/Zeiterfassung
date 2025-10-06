@@ -42,6 +42,8 @@ CREATE TABLE IF NOT EXISTS users (
     last_name TEXT,
     email TEXT NOT NULL UNIQUE, -- Eindeutige E-Mail für den Login
     password_hash TEXT NOT NULL,
+    session_token TEXT, -- Session-Token zur Authentifizierung
+    csrf_token TEXT, -- CSRF-Token zur Sicherheit
     role role_enum NOT NULL DEFAULT 'student',
     team_id BIGINT, -- Wird später mit FK zu teams verknüpft
     start_date DATE,
