@@ -1,71 +1,114 @@
 -- =====================================================================
--- 000001_init_schema.up.sql
--- Komplettes Schema zur Erstellung der Tabellen users, time_entries und notification_logs
--- für das Projekt Zeiterfassung
+-- Definitives Datenbankschema für das Projekt "Zeiterfassung"
+-- Version: 4.0
+-- Beschreibung: Finale Version mit bereinigten Kommentaren.
 -- =====================================================================
 
--- 1) Aktivieren der uuid-ossp-Erweiterung für native UUID-Erzeugung
+
+-- 1. Erweiterungen und benutzerdefinierte Typen (ENUMs)
+-- ---------------------------------------------------------------------
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- 2) Definition der ENUM-Typen
-CREATE TYPE role_enum AS ENUM ('student', 'supervisor', 'admin' , 'accounting');
+-- Definiert die möglichen Benutzerrollen im System.
+CREATE TYPE role_enum AS ENUM (
+    'student',
+    'supervisor',
+    'admin',
+    'accounting'
+);
 
-CREATE TYPE notification_type_enum AS ENUM ('EMAIL', 'IN_APP');
+-- Definiert die möglichen Versandarten für Benachrichtigungen.
+CREATE TYPE notification_type_enum AS ENUM (
+    'EMAIL',    -- Benachrichtigung per E-Mail
+    'IN_APP'    -- Benachrichtigung innerhalb der Anwendung
+);
 
--- 3) Tabelle users
--- Diese Tabelle speichert alle Benutzer (Studenten, Supervisoren, Admins).
+-- Definiert den Lebenszyklus-Status einer wöchentlichen Zeiterfassung.
+CREATE TYPE submission_status_enum AS ENUM (
+    'offen',        -- In Bearbeitung durch den Studenten
+    'gesendet',     -- Zur Genehmigung an den Vorgesetzten übermittelt
+    'korrektur',    -- Vom Vorgesetzten zur Korrektur zurückgesendet
+    'bestaetigt',   -- Vom Vorgesetzten genehmigt
+    'erledigt'      -- Von der Buchhaltung final bearbeitet
+);
+
+
+-- 2. Haupttabellen
+-- ---------------------------------------------------------------------
+
+-- Tabelle zur Verwaltung der Teams.
+CREATE TABLE IF NOT EXISTS teams (
+    id            BIGSERIAL PRIMARY KEY,
+    name          TEXT NOT NULL UNIQUE,                               -- Eindeutiger Name des Teams
+    supervisor_id BIGINT REFERENCES users(id) ON DELETE SET NULL,     -- Der dem Team zugeordnete Vorgesetzte
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Tabelle zur Speicherung aller Benutzerkonten.
 CREATE TABLE IF NOT EXISTS users (
     id            BIGSERIAL PRIMARY KEY,
-    first_name    TEXT,                           -- Vorname des Benutzers
-    last_name     TEXT,                           -- Nachname des Benutzers
-    email         TEXT NOT NULL UNIQUE,           -- Eindeutige E-Mail-Adresse für Login
-    password_hash TEXT NOT NULL,                  -- Gehashter Passwortwert
-    session_token  TEXT,                           -- Session-Token für Authentifizierung
-    csrf_token     TEXT,                           -- CSRF-Token für Sicherheit
-    role          role_enum NOT NULL DEFAULT 'student', -- Rolle: 'student', 'supervisor' oder 'admin'
-
--- Wenn Rolle = 'student', muss supervisor_id nicht NULL sein
-
-
-supervisor_id BIGINT REFERENCES users(id) ON DELETE SET NULL, -- Verweis auf den Supervisor
-
-    start_date    DATE,                            -- Datum des Arbeitsbeginns
-    created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),  -- Erstellungszeitpunkt
-    updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),  -- Letzte Aktualisierung
-
-    CONSTRAINT chk_student_has_supervisor
-        CHECK (role <> 'student' OR supervisor_id IS NOT NULL)  -- Prüft, dass Studenten einen Supervisor haben
+    first_name    TEXT,
+    last_name     TEXT,
+    email         TEXT NOT NULL UNIQUE,                               -- Eindeutige E-Mail für den Login
+    password_hash TEXT NOT NULL,
+    role          role_enum NOT NULL DEFAULT 'student',
+    team_id       BIGINT REFERENCES teams(id) ON DELETE SET NULL,     -- Verknüpfung zu einem Team
+    start_date    DATE,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- 4) Tabelle time_entries
--- Speichert Arbeitszeiteinträge für jeden Benutzer.
+-- Kern-Tabelle: Speichert den Status einer kompletten Arbeitswoche pro Benutzer.
+CREATE TABLE IF NOT EXISTS weekly_submissions (
+    id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id         BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    week_number     INTEGER NOT NULL,                                   -- Kalenderwoche (z.B. 42)
+    year            INTEGER NOT NULL,                                   -- Jahr (z.B. 2025)
+    status          submission_status_enum NOT NULL DEFAULT 'offen',    -- Aktueller Status der Einreichung
+    submitted_at    TIMESTAMPTZ,                                        -- Zeitpunkt der Einreichung
+    approved_at     TIMESTAMPTZ,                                        -- Zeitpunkt der Genehmigung
+    processed_by    BIGINT REFERENCES users(id) ON DELETE SET NULL,     -- Welcher Buchhalter hat es bearbeitet
+    processed_at    TIMESTAMPTZ,                                        -- Zeitpunkt des Abschlusses durch die Buchhaltung
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    -- Eindeutiger Index, um doppelte Wochen pro Benutzer zu verhindern.
+    UNIQUE(user_id, week_number, year)
+);
+
+-- Speichert die einzelnen täglichen Zeiteinträge für eine Arbeitswoche.
 CREATE TABLE IF NOT EXISTS time_entries (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (), -- Eindeutige UUID als Primärschlüssel
-    user_id BIGINT NOT NULL REFERENCES users (id) ON DELETE CASCADE, -- Verweis auf Benutzer
-    entry_date DATE NOT NULL, -- Datum des Eintrags
-    start_time TIME NOT NULL, -- Arbeitsbeginn
-    end_time TIME NOT NULL, -- Arbeitsende
-    break_min INTEGER DEFAULT 0, -- Pausenlänge in Minuten
-    duration_h NUMERIC(5, 2) NOT NULL, -- Nettoarbeitszeit in Stunden (z.B. 7.50)
-    note TEXT, -- Freitext-Notiz
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), -- Erstellungszeitpunkt
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), -- Letzte Aktualisierung
-    CONSTRAINT chk_time_valid CHECK (end_time > start_time) -- Prüft, dass end_time nach start_time liegt
+    id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    submission_id   UUID NOT NULL REFERENCES weekly_submissions(id) ON DELETE CASCADE, -- Verknüpfung zur Arbeitswoche
+    entry_date      DATE NOT NULL,                                      -- Datum des Eintrags
+    start_time      TIME NOT NULL,                                      -- Arbeitsbeginn
+    end_time        TIME NOT NULL,                                      -- Arbeitsende
+    break_min       INTEGER DEFAULT 0,                                  -- Pause in Minuten
+    duration_h      NUMERIC(5, 2) NOT NULL,                             -- Netto-Arbeitsstunden
+    note            TEXT,                                               -- Optionale Anmerkungen
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    -- Stellt die logische Korrektheit der Zeitangaben sicher.
+    CONSTRAINT chk_time_valid CHECK (end_time > start_time)
 );
 
--- 5) Tabelle notification_logs
--- Speichert Protokolle aller gesendeten Benachrichtigungen (E-Mail oder In-App).
-CREATE TABLE IF NOT EXISTS notification_logs (
-    id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT NOT NULL REFERENCES users (id) ON DELETE CASCADE, -- Verweis auf Benutzer
-    type notification_type_enum NOT NULL, -- Art der Benachrichtigung: 'EMAIL' oder 'IN_APP'
-    payload JSONB NOT NULL, -- Rohinhalt der Benachrichtigung (Audit-Zwecke)
-    sent_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), -- Zeitpunkt des Versands
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW() -- Erstellungszeitpunkt des Logs
+-- Dient als Warteschlange für alle zu versendenden Benachrichtigungen.
+CREATE TABLE IF NOT EXISTS notifications (
+    id          BIGSERIAL PRIMARY KEY,
+    user_id     BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE, -- Empfänger der Benachrichtigung
+    message     TEXT NOT NULL,                                      -- Inhalt der Nachricht
+    type        notification_type_enum NOT NULL,                    -- Versandart: 'EMAIL' oder 'IN_APP'
+    status      TEXT NOT NULL DEFAULT 'pending',                    -- Verarbeitungsstatus (pending, sent, failed)
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    sent_at     TIMESTAMPTZ                                         -- Zeitpunkt des tatsächlichen Versands
 );
 
--- 6) Funktion und Trigger zur automatischen Aktualisierung von updated_at
--- Diese Funktion setzt updated_at bei jedem UPDATE auf den aktuellen Zeitstempel.
+
+-- 3. Trigger-Funktionen (Beispielhaft, Implementierung wie zuvor)
+-- ---------------------------------------------------------------------
+-- Die Trigger zur automatischen Aktualisierung der 'updated_at'-Spalte
+-- sollten hier wie im ursprünglichen Skript definiert werden.
+
+
 CREATE OR REPLACE FUNCTION set_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -82,6 +125,11 @@ CREATE TRIGGER trg_users_set_updated
 -- Trigger für Tabelle time_entries
 CREATE TRIGGER trg_time_entries_set_updated
     BEFORE UPDATE ON time_entries
+    FOR EACH ROW EXECUTE PROCEDURE set_updated_at();
+
+-- Trigger für Tabelle weekly_submissions
+CREATE TRIGGER trg_weekly_submissions_set_updated
+    BEFORE UPDATE ON weekly_submissions
     FOR EACH ROW EXECUTE PROCEDURE set_updated_at();
 
 -- =====================================================================
