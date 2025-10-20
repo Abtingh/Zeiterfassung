@@ -99,26 +99,79 @@ func (ns NullRoleEnum) Value() (driver.Value, error) {
 	return string(ns.RoleEnum), nil
 }
 
-type NotificationLog struct {
+type SubmissionStatusEnum string
+
+const (
+	SubmissionStatusEnumOffen      SubmissionStatusEnum = "offen"
+	SubmissionStatusEnumGesendet   SubmissionStatusEnum = "gesendet"
+	SubmissionStatusEnumKorrektur  SubmissionStatusEnum = "korrektur"
+	SubmissionStatusEnumBestaetigt SubmissionStatusEnum = "bestaetigt"
+	SubmissionStatusEnumErledigt   SubmissionStatusEnum = "erledigt"
+)
+
+func (e *SubmissionStatusEnum) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = SubmissionStatusEnum(s)
+	case string:
+		*e = SubmissionStatusEnum(s)
+	default:
+		return fmt.Errorf("unsupported scan type for SubmissionStatusEnum: %T", src)
+	}
+	return nil
+}
+
+type NullSubmissionStatusEnum struct {
+	SubmissionStatusEnum SubmissionStatusEnum `json:"submission_status_enum"`
+	Valid                bool                 `json:"valid"` // Valid is true if SubmissionStatusEnum is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullSubmissionStatusEnum) Scan(value interface{}) error {
+	if value == nil {
+		ns.SubmissionStatusEnum, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.SubmissionStatusEnum.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullSubmissionStatusEnum) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.SubmissionStatusEnum), nil
+}
+
+type Notification struct {
 	ID        int64                `json:"id"`
 	UserID    int64                `json:"user_id"`
+	Message   string               `json:"message"`
 	Type      NotificationTypeEnum `json:"type"`
-	Payload   []byte               `json:"payload"`
-	SentAt    time.Time            `json:"sent_at"`
+	Status    string               `json:"status"`
 	CreatedAt time.Time            `json:"created_at"`
+	SentAt    pgtype.Timestamptz   `json:"sent_at"`
+}
+
+type Team struct {
+	ID           int64       `json:"id"`
+	Name         string      `json:"name"`
+	SupervisorID pgtype.Int8 `json:"supervisor_id"`
+	CreatedAt    time.Time   `json:"created_at"`
 }
 
 type TimeEntry struct {
-	ID        uuid.UUID      `json:"id"`
-	UserID    int64          `json:"user_id"`
-	EntryDate pgtype.Date    `json:"entry_date"`
-	StartTime pgtype.Time    `json:"start_time"`
-	EndTime   pgtype.Time    `json:"end_time"`
-	BreakMin  pgtype.Int4    `json:"break_min"`
-	DurationH pgtype.Numeric `json:"duration_h"`
-	Note      pgtype.Text    `json:"note"`
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
+	ID           uuid.UUID      `json:"id"`
+	SubmissionID uuid.UUID      `json:"submission_id"`
+	EntryDate    pgtype.Date    `json:"entry_date"`
+	StartTime    pgtype.Time    `json:"start_time"`
+	EndTime      pgtype.Time    `json:"end_time"`
+	BreakMin     pgtype.Int4    `json:"break_min"`
+	DurationH    pgtype.Numeric `json:"duration_h"`
+	Note         pgtype.Text    `json:"note"`
+	CreatedAt    time.Time      `json:"created_at"`
+	UpdatedAt    time.Time      `json:"updated_at"`
 }
 
 type User struct {
@@ -130,8 +183,22 @@ type User struct {
 	SessionToken pgtype.Text `json:"session_token"`
 	CsrfToken    pgtype.Text `json:"csrf_token"`
 	Role         RoleEnum    `json:"role"`
-	SupervisorID pgtype.Int8 `json:"supervisor_id"`
+	TeamID       pgtype.Int8 `json:"team_id"`
 	StartDate    pgtype.Date `json:"start_date"`
 	CreatedAt    time.Time   `json:"created_at"`
 	UpdatedAt    time.Time   `json:"updated_at"`
+}
+
+type WeeklySubmission struct {
+	ID          uuid.UUID            `json:"id"`
+	UserID      int64                `json:"user_id"`
+	WeekNumber  int32                `json:"week_number"`
+	Year        int32                `json:"year"`
+	Status      SubmissionStatusEnum `json:"status"`
+	SubmittedAt pgtype.Timestamptz   `json:"submitted_at"`
+	ApprovedAt  pgtype.Timestamptz   `json:"approved_at"`
+	ProcessedBy pgtype.Int8          `json:"processed_by"`
+	ProcessedAt pgtype.Timestamptz   `json:"processed_at"`
+	CreatedAt   time.Time            `json:"created_at"`
+	UpdatedAt   time.Time            `json:"updated_at"`
 }

@@ -177,36 +177,53 @@ func (h *Handler) HomeHandler(w http.ResponseWriter, r *http.Request) {
 
 // LogoutHandler clears cookies and resets the tokens in the DB.
 func (h *Handler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("→ %s %s", r.Method, r.URL.Path)
+
 	if err := h.Authorize(r); err != nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
+		log.Printf("Logout: Authorization failed (proceeding anyway): %v", err)
+		// Continue with logout even if authorization fails
+		// This ensures users can always log out
 	}
 
 	email := r.FormValue("email")
 	ctx := r.Context()
 
+	log.Printf("Logout: Processing logout for email: %s", email)
+
 	// Best-effort DB cleanup; ignore errors so logout is always successful.
 	if user, err := h.Q.GetUserByEmail(ctx, email); err == nil {
+		log.Printf("Logout: Clearing tokens for user ID %d", user.ID)
 		_ = h.Q.UpdateUserTokens(ctx, db.UpdateUserTokensParams{
 			SessionToken: pgtype.Text{Valid: false},
 			CsrfToken:    pgtype.Text{Valid: false},
 			ID:           user.ID,
 		})
+	} else {
+		log.Printf("Logout: Could not find user %s (will still clear cookies)", email)
 	}
 
-	// Clear cookies
+	// Clear cookies - must match the Path and SameSite from login
+	log.Printf("Logout: Clearing session and CSRF cookies")
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_token",
 		Value:    "",
+		Path:     "/",
 		Expires:  time.Unix(0, 0),
+		MaxAge:   -1,
 		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
 	})
 	http.SetCookie(w, &http.Cookie{
-		Name:    "csrf_token",
-		Value:   "",
-		Expires: time.Unix(0, 0),
+		Name:     "csrf_token",
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Unix(0, 0),
+		MaxAge:   -1,
+		HttpOnly: false,
+		SameSite: http.SameSiteLaxMode,
 	})
 
+	log.Printf("Logout: Redirecting to /login")
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
 

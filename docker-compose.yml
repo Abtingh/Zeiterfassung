@@ -36,6 +36,8 @@ services:
       - JWT_SECRET=XhvFjfp4L5O8JND2
     ports:
       - "8080:8080"
+    volumes:
+      - ./public:/app/public
     depends_on:
       db:
         condition: service_healthy

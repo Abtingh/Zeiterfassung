@@ -12,20 +12,20 @@ import (
 )
 
 const getPublicUserBySessionToken = `-- name: GetPublicUserBySessionToken :one
-SELECT id, first_name, last_name, email, role, supervisor_id, start_date
+SELECT id, first_name, last_name, email, role, team_id, start_date
 FROM users
 WHERE session_token = $1
 LIMIT 1
 `
 
 type GetPublicUserBySessionTokenRow struct {
-	ID           int64       `json:"id"`
-	FirstName    pgtype.Text `json:"first_name"`
-	LastName     pgtype.Text `json:"last_name"`
-	Email        string      `json:"email"`
-	Role         RoleEnum    `json:"role"`
-	SupervisorID pgtype.Int8 `json:"supervisor_id"`
-	StartDate    pgtype.Date `json:"start_date"`
+	ID        int64       `json:"id"`
+	FirstName pgtype.Text `json:"first_name"`
+	LastName  pgtype.Text `json:"last_name"`
+	Email     string      `json:"email"`
+	Role      RoleEnum    `json:"role"`
+	TeamID    pgtype.Int8 `json:"team_id"`
+	StartDate pgtype.Date `json:"start_date"`
 }
 
 func (q *Queries) GetPublicUserBySessionToken(ctx context.Context, sessionToken pgtype.Text) (GetPublicUserBySessionTokenRow, error) {
@@ -37,7 +37,7 @@ func (q *Queries) GetPublicUserBySessionToken(ctx context.Context, sessionToken 
 		&i.LastName,
 		&i.Email,
 		&i.Role,
-		&i.SupervisorID,
+		&i.TeamID,
 		&i.StartDate,
 	)
 	return i, err
@@ -53,7 +53,7 @@ SELECT
   session_token,
   csrf_token,
   role,
-  supervisor_id,
+  team_id,
   start_date
 FROM users
 WHERE email = $1
@@ -68,7 +68,7 @@ type GetUserByEmailRow struct {
 	SessionToken pgtype.Text `json:"session_token"`
 	CsrfToken    pgtype.Text `json:"csrf_token"`
 	Role         RoleEnum    `json:"role"`
-	SupervisorID pgtype.Int8 `json:"supervisor_id"`
+	TeamID       pgtype.Int8 `json:"team_id"`
 	StartDate    pgtype.Date `json:"start_date"`
 }
 
@@ -84,14 +84,14 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEm
 		&i.SessionToken,
 		&i.CsrfToken,
 		&i.Role,
-		&i.SupervisorID,
+		&i.TeamID,
 		&i.StartDate,
 	)
 	return i, err
 }
 
 const getUserBySessionToken = `-- name: GetUserBySessionToken :one
-SELECT id, first_name, last_name, email, password_hash, session_token, csrf_token, role, supervisor_id, start_date, created_at, updated_at FROM users
+SELECT id, first_name, last_name, email, password_hash, session_token, csrf_token, role, team_id, start_date, created_at, updated_at FROM users
 WHERE session_token = $1 AND session_token IS NOT NULL
 LIMIT 1
 `
@@ -108,7 +108,7 @@ func (q *Queries) GetUserBySessionToken(ctx context.Context, sessionToken pgtype
 		&i.SessionToken,
 		&i.CsrfToken,
 		&i.Role,
-		&i.SupervisorID,
+		&i.TeamID,
 		&i.StartDate,
 		&i.CreatedAt,
 		&i.UpdatedAt,

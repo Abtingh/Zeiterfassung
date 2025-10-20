@@ -60,28 +60,28 @@ func (h *Handler) MeHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Prepare response data (exclude sensitive fields)
 	type UserResponse struct {
-		ID           int64  `json:"id"`
-		FirstName    string `json:"first_name"`
-		LastName     string `json:"last_name"`
-		Email        string `json:"email"`
-		Role         string `json:"role"`
-		SupervisorID *int64 `json:"supervisor_id,omitempty"`
-		StartDate    string `json:"start_date,omitempty"`
+		ID        int64  `json:"id"`
+		FirstName string `json:"first_name"`
+		LastName  string `json:"last_name"`
+		Email     string `json:"email"`
+		Role      string `json:"role"`
+		TeamID    *int64 `json:"team_id,omitempty"`
+		StartDate string `json:"start_date,omitempty"`
 	}
 
 	response := UserResponse{
-		ID:           user.ID,
-		FirstName:    user.FirstName.String,
-		LastName:     user.LastName.String,
-		Email:        user.Email,
-		Role:         string(user.Role),
-		SupervisorID: nil,
-		StartDate:    "",
+		ID:        user.ID,
+		FirstName: user.FirstName.String,
+		LastName:  user.LastName.String,
+		Email:     user.Email,
+		Role:      string(user.Role),
+		TeamID:    nil,
+		StartDate: "",
 	}
 
-	if user.SupervisorID.Valid {
-		supervisorID := user.SupervisorID.Int64
-		response.SupervisorID = &supervisorID
+	if user.TeamID.Valid {
+		teamID := user.TeamID.Int64
+		response.TeamID = &teamID
 	}
 	if user.StartDate.Valid {
 		response.StartDate = user.StartDate.Time.Format("2006-01-02")
