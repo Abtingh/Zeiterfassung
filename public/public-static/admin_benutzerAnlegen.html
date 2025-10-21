@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Benutzer Anlegen</title>
+    <link rel="stylesheet" href="../src/styles/home.css">
+    <link rel="stylesheet" href="../src/styles/BenutzerVerwalten.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div id="header">
+        <div id="logoContainer">
+            <h2>Zeiterfassung</h2>
+        </div>
+        <div id="iconProfile">
+            <a href="#">
+                <img src="../assets/iconProfile.svg" alt="User Icon">
+            </a>
+            <div id="profileDropDown" class="dropdown-menu hidden">
+                <ul>
+                    <li><a href="#" id="profileLink">Profil</a></li>
+                    <li><a href="/reset-passwort" id="resetPasswordLink">Passwort zurücksetzen</a></li>
+                    <li><a href="#" id="logoutLink">Ausloggen</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div id="main">
+        <div id="mainContent">
+            <form id="formContainer">
+                <div id="titleContainer">
+                    <h2>Benutzer anlegen</h2>
+                </div>
+                <div id="inputGroup">
+                    <div class="inputfield" id="firstnameHolder">
+                        <label for="firstname">Vorname</label>
+                        <input type="text" id="firstname" name="firstname" placeholder="Vorname" required>
+                    </div>
+                    <div class="inputfield" id="lastnameHolder">
+                        <label for="lastname">Nachname</label>
+                        <input type="text" id="lastname" name="lastname" placeholder="Nachname" required>
+                    </div>
+                    <div class="inputfield" id="teamHolder">
+                        <label for="team">Team</label>
+                        <input type="text" id="team" name="team" placeholder="Team" required>
+                    </div>
+                    <div class="inputfield" id="passwordHolder">
+                        <label for="password">Passwort</label>
+                        <input type="password" id="password" name="password" placeholder="Passwort" required>
+                    </div>
+                    <div class="inputfield" id="emailHolder">
+                        <label for="email">E-Mail</label>
+                        <input type="email" id="email" name="email" placeholder="E-Mail" required>
+                    </div>
+                    <div class="inputfield" id="confirmPasswordHolder">
+                        <label for="confirmPassword">Passwort bestätigen</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Passwort bestätigen" required>
+                    </div>
+                    <div class="inputfield" id="teamleader_EmailHolder">
+                        <label for="teamleader_Email">Vorgesetzter E-Mail</label>
+                        <input type="email" id="teamleader_Email" name="teamleader_Email" placeholder="Vorgesetzter E-Mail" required>
+                    </div>
+                    <div class="inputfield" id="roleHolder">
+                        <label for="role">Rolle</label>
+                        <select id="role" name="role" required>
+                            <option value="role" selected disabled>Role</option>
+                            <option value="admin">Admin</option>
+                            <option value="user">Benutzer</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="buttonContainer">
+                    <button type="button" id="cancelButton">Reset</button>
+                    <button type="submit" id="submitButton">Anlegen</button>
+                </div>
+            </form>
+        </div>
+        <div id="navbar">
+            <ul>
+                <li><img src="../assets/iconHome.svg" alt="Home"><a href="/home">Übersicht</a></li>
+                <li><img src="../assets/iconAddUser.svg" alt="Anlegen"><a href="#">Benutzer anlegen</a></li>
+                <li><img src="../assets/iconManageUser.svg" alt="Verwalten"><a href="#">Benutzer verwalten</a></li>
+            </ul>
+        </div>
+    </div>
+    <script src="/src/services/logout.js"></script>
+    <script src="/src/services/profileDropdown.js"></script>
+</body>
+
+</html>
