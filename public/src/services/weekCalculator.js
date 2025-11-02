@@ -1,22 +1,39 @@
+/**
+ * Generates all work week Fridays for a given month.
+ * 
+ * BUSINESS RULE: 
+ * - Each month ends at the FIRST FRIDAY of the NEXT month
+ * - Work weeks start on the Monday AFTER the first Friday of each month
+ * 
+ * Examples:
+ * - September 2025 ends at Oct 3 (first Friday) → October starts Monday Oct 6
+ * - October 2025 ends at Nov 7 (first Friday) → November starts Monday Nov 10
+ * - November 2025 ends at Dec 5 (first Friday) → December starts Monday Dec 8
+ * 
+ * @param {number} year - The year (e.g., 2025)
+ * @param {number} month0 - The month (0-11, where 0=January)
+ * @returns {Date[]} Array of Friday dates representing work weeks for this work month
+ */
 function fridaysInMonth(year, month0) {
-  // Find the first Friday of the month
-  const daysInMonth = new Date(year, month0 + 1, 0).getDate();
-  const firstDow = new Date(year, month0, 1).getDay(); 
-  const firstFridayDate = 1 + ((5 - firstDow + 7) % 7);
+  // Step 1: Find the first Friday of the month
+  const daysInMonth = new Date(year, month0 + 1, 0).getDate(); // Total days in the month
+  const firstDow = new Date(year, month0, 1).getDay(); // Day of week for 1st of month (0=Sunday, 5=Friday)
+  const firstFridayDate = 1 + ((5 - firstDow + 7) % 7); // Calculate date of first Friday
   
+  // If there's no Friday in this month (edge case), return empty array
   if (firstFridayDate > daysInMonth) {
     return []; // No Fridays in this month
   }
   
   const firstFriday = new Date(year, month0, firstFridayDate);
   
-  // Work month starts on Monday after first Friday
+  // Step 2: Calculate work month start = Monday AFTER first Friday
   const workStartMonday = new Date(firstFriday);
-  workStartMonday.setDate(firstFriday.getDate() + 3); // Friday + 3 days = Monday
+  workStartMonday.setDate(firstFriday.getDate() + 3); // Friday + 3 days = next Monday
   
-  // Find next month's first Friday
-  const nextMonth = month0 + 1 > 11 ? 0 : month0 + 1;
-  const nextYear = month0 + 1 > 11 ? year + 1 : year;
+  // Step 3: Find next month's first Friday (to know when to stop)
+  const nextMonth = month0 + 1 > 11 ? 0 : month0 + 1; // Wrap to January if December
+  const nextYear = month0 + 1 > 11 ? year + 1 : year; // Increment year if wrapping
   const nextMonthDays = new Date(nextYear, nextMonth + 1, 0).getDate();
   const nextFirstDow = new Date(nextYear, nextMonth, 1).getDay();
   const nextFirstFridayDate = 1 + ((5 - nextFirstDow + 7) % 7);
@@ -29,17 +46,54 @@ function fridaysInMonth(year, month0) {
     nextFirstFriday = new Date(nextYear, nextMonth + 1, 0);
   }
   
-  // Generate all Fridays from work start until and INCLUDING the week with next month's first Friday
+  // Step 4: Generate all Fridays from work start until next month's first Friday (inclusive)
   const workFridays = [];
   let currentFriday = new Date(workStartMonday);
-  currentFriday.setDate(workStartMonday.getDate() + 4); // Monday + 4 = Friday
+  currentFriday.setDate(workStartMonday.getDate() + 4); // Monday + 4 days = Friday of that week
   
+  // Loop through weeks, adding each Friday
   while (currentFriday <= nextFirstFriday) {
-    workFridays.push(new Date(currentFriday));
-    currentFriday.setDate(currentFriday.getDate() + 7); // Next Friday
+    workFridays.push(new Date(currentFriday)); // Store a copy of the date
+    currentFriday.setDate(currentFriday.getDate() + 7); // Move to next Friday (+7 days)
   }
   
   return workFridays;
+}
+
+/**
+ * Calculates the display week number based on work month rules.
+ * Week numbering ALWAYS starts from 1 (never 0 for users).
+ * 
+ * @param {Date} mondayDate - The Monday of the week
+ * @param {number} workYear - The work month's year
+ * @param {number} workMonth - The work month (0-11)
+ * @returns {number} The week number to display (always starts from 1)
+ */
+function getDisplayWeekNumber(mondayDate, workYear, workMonth) {
+  // Get all work week Fridays for the WORK month
+  const frs = fridaysInMonth(workYear, workMonth);
+  
+  // Find which work week this Monday belongs to
+  for (let i = 0; i < frs.length; i++) {
+    const friday = frs[i];
+    const weekMonday = new Date(friday);
+    weekMonday.setDate(friday.getDate() - 4); // Friday - 4 = Monday
+    
+    if (sameDay(weekMonday, mondayDate)) {
+      return i + 1; // Week numbers start from 1
+    }
+  }
+  
+  return 1; // Default to week 1 if not found
+}
+
+/**
+ * Checks if two dates are the same day (ignoring time).
+ */
+function sameDay(a, b) {
+  return a.getFullYear() === b.getFullYear() &&
+         a.getMonth() === b.getMonth() &&
+         a.getDate() === b.getDate();
 }
 
 
@@ -98,16 +152,20 @@ function renderMonthWeeks(year, month0) {
     const monday = weekDates[0]; // Monday
     const sunday = weekDates[6]; // Sunday
     
-    console.log(`${i + 1}. Woche: ${formatDate(monday)} - ${formatDate(sunday)} (Friday: ${formatDate(date)})`);
+    // Calculate the proper display week number using the same logic as timeCalculator
+    const displayWeekNo = getDisplayWeekNumber(monday, year, month0);
+    
+    console.log(`${displayWeekNo}. Woche: ${formatDate(monday)} - ${formatDate(sunday)} (Friday: ${formatDate(date)})`);
     
     const card = document.createElement('div');
     card.className = 'weekCard';
     
-    // Add click functionality to navigate to time entry page
+    // Add click functionality to navigate to time entry page with correct week index
     card.addEventListener('click', function() {
-      const weekNumber = i + 1;
       const month = month0 + 1; // Convert to 1-indexed
-      const url = `student_ZeitEintragen.html?year=${year}&month=${month}&week=${weekNumber}`;
+      const weekIndex = i + 1; // Week index within the month (1-based)
+      const url = `/ZeitEintragen?year=${year}&month=${month}&week=${weekIndex}`;
+      console.log(`Navigating to: ${url}`);
       window.location.href = url;
     });
     
@@ -117,63 +175,27 @@ function renderMonthWeeks(year, month0) {
     const left = document.createElement('div');
     left.className = 'weekHolder';
     left.innerHTML = `<img src="../assets/iconWoche.svg" alt="">
-    <p>${i + 1}. Woche</p>`;
+    <p>${displayWeekNo}. Woche</p>`;
 
     const right = document.createElement('div');
-    // Example status assignment
-    switch (i) {
-      case 0:
-        status = 'accepted';
-        break;
-      case 1:
-        status = 'needReview';
-        break;
-      case 2:
-        status = 'sent';
-        break;
-      default:
-        status = 'open';
-        break;
-    }
     right.className = 'statusHolder';
-
-    switch (status) {
-      case 'accepted':
-        right.classList.add('accepted');
-        right.innerHTML = `
-          <p>Bestätigt</p>
-          <img src="../assets/iconAccepted.svg" alt="">
-        `;
-        break;
-
-        case 'needReview':
-        right.classList.add('needReview');
-        right.innerHTML = `
-          <p>Korrektur</p>
-          <img src="../assets/iconNeedReview.svg" alt="">
-        `;
-        break;
-
-        case 'sent':
-        right.classList.add('sent');
-        right.innerHTML = `
-          <p>Gesendet</p>
-          <img src="../assets/iconSent.svg" alt="">
-        `;
-        break;
-
-        case 'open':
-        right.classList.add('open');
-        right.innerHTML = `
-          <p>Offen</p>
-          <img src="../assets/iconOpen.svg" alt="">
-        `;
-        break;
-
-    default:
-      right.innerHTML = `<p>—</p>`;
-      break;
-    }
+    
+    // Fetch status from backend for this specific week
+    // For now, set to loading state
+    right.innerHTML = `<p>Laden...</p>`;
+    
+    // Calculate globally unique week number: (month * 5) + weekIndex
+    // This ensures October Week 4 != November Week 4
+    const globalWeekNumber = (month0 * 5) + displayWeekNo;
+    console.log(`Month ${month0}, Week ${displayWeekNo} → Global Week ${globalWeekNumber}`);
+    
+    // Async fetch the status with the global week number
+    fetchWeekStatus(globalWeekNumber, year).then(status => {
+      updateStatusDisplay(right, status);
+    }).catch(() => {
+      // Default to 'open' if fetch fails
+      updateStatusDisplay(right, 'offen');
+    });
 
     card.appendChild(left);
     card.appendChild(right);
@@ -181,6 +203,84 @@ function renderMonthWeeks(year, month0) {
   });
 
   console.log(`Month ${month0 + 1}/${year} → ${fridays.length} weeks`);
+}
+
+/**
+ * Calculates a globally unique week number within the year
+ * Based on month and week within that month
+ * Formula: (month * 10) + weekInMonth
+ * Examples: October Week 4 = 94, November Week 1 = 101
+ */
+function calculateGlobalWeekNumber(month0, weekInMonth) {
+  return ((month0 + 1) * 10) + weekInMonth;
+}
+
+/**
+ * Fetches the status of a specific week from the backend
+ */
+async function fetchWeekStatus(weekNumber, year) {
+  try {
+    const response = await fetch(`/api/time-entries/week?week=${weekNumber}&year=${year}`, {
+      method: 'GET',
+      credentials: 'include'
+    });
+
+    if (!response.ok) {
+      return 'offen'; // Default to open if request fails
+    }
+
+    const data = await response.json();
+    return data.status || 'offen';
+  } catch (error) {
+    console.error('Error fetching week status:', error);
+    return 'offen';
+  }
+}
+
+/**
+ * Updates the status display with the proper styling and icon
+ */
+function updateStatusDisplay(element, status) {
+  // Clear existing classes
+  element.className = 'statusHolder';
+  
+  switch (status) {
+    case 'bestaetigt':
+      element.classList.add('accepted');
+      element.innerHTML = `
+        <p>Bestätigt</p>
+        <img src="../assets/iconAccepted.svg" alt="">
+      `;
+      break;
+
+    case 'gesendet':
+      element.classList.add('sent');
+      element.innerHTML = `
+        <p>Gesendet</p>
+        <img src="../assets/iconSent.svg" alt="">
+      `;
+      break;
+
+    case 'offen':
+      element.classList.add('open');
+      element.innerHTML = `
+        <p>Offen</p>
+        <img src="../assets/iconOpen.svg" alt="">
+      `;
+      break;
+
+    case 'erledigt':
+      element.classList.add('needReview');
+      element.innerHTML = `
+        <p>Erledigt</p>
+        <img src="../assets/iconNeedReview.svg" alt="">
+      `;
+      break;
+
+    default:
+      element.innerHTML = `<p>—</p>`;
+      break;
+  }
 }
 
 const monthLabel = document.getElementById('monthLabel');

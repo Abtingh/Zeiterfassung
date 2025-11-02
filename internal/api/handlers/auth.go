@@ -14,11 +14,17 @@ import (
 
 // Handler wraps db.Queries so the HTTP handlers can access the database
 type Handler struct {
-	Q *db.Queries
+	Q  *db.Queries
+	DB db.DBTX
 }
 
 func NewHandler(q *db.Queries) *Handler {
 	return &Handler{Q: q}
+}
+
+// NewHandlerWithDB creates a handler with both queries and database connection
+func NewHandlerWithDB(q *db.Queries, dbConn db.DBTX) *Handler {
+	return &Handler{Q: q, DB: dbConn}
 }
 
 // LoginHandler handles both GET (serve login form) and POST (authenticate user).

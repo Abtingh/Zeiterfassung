@@ -42,7 +42,7 @@
                     </div>
                 </div>
                 <div id="statusHolder">
-                    <p>Status: <span id="statusText">Bestätigt</span></p>
+                    <p>Status: <span id="statusText">Offen</span></p>
                 </div>
             </div>
             <div id="tableBody">
@@ -54,7 +54,7 @@
                             <th>Von</th>
                             <th>Bis</th>
                             <th>Stunden</th>
-                            <th>Pause</th>
+                            <th>Pause<br>(Min.)</th>
                             <th>Arbeits-<br>stunden</th>
                             <th>Besonderheiten<br>(Bsp. Krank/<br>Urlaub)</th>
                         </tr>
@@ -68,7 +68,7 @@
                             <td><input type="time" class="time-input"></td>
                             <td><input type="time" class="time-input"></td>
                             <td class="calculated-hours">-</td>
-                            <td><input type="number" class="pause-input" step="0.5" min="0" placeholder="0"></td>
+                            <td><input type="number" class="pause-input" step="1" min="0" placeholder="30"></td>
                             <td class="work-hours">-</td>
                             <td><input type="text" class="notes-input"></td>
                         </tr>
@@ -80,7 +80,7 @@
                             <td><input type="time" class="time-input"></td>
                             <td><input type="time" class="time-input"></td>
                             <td class="calculated-hours">-</td>
-                            <td><input type="number" class="pause-input" step="0.5" min="0" placeholder="0"></td>
+                            <td><input type="number" class="pause-input" step="1" min="0" placeholder="30"></td>
                             <td class="work-hours">-</td>
                             <td><input type="text" class="notes-input"></td>
                         </tr>
@@ -92,7 +92,7 @@
                             <td><input type="time" class="time-input"></td>
                             <td><input type="time" class="time-input"></td>
                             <td class="calculated-hours">-</td>
-                            <td><input type="number" class="pause-input" step="0.5" min="0" placeholder="0"></td>
+                            <td><input type="number" class="pause-input" step="1" min="0" placeholder="30"></td>
                             <td class="work-hours">-</td>
                             <td><input type="text" class="notes-input"></td>
                         </tr>
@@ -104,7 +104,7 @@
                             <td><input type="time" class="time-input"></td>
                             <td><input type="time" class="time-input"></td>
                             <td class="calculated-hours">-</td>
-                            <td><input type="number" class="pause-input" step="0.5" min="0" placeholder="0"></td>
+                            <td><input type="number" class="pause-input" step="1" min="0" placeholder="30"></td>
                             <td class="work-hours">-</td>
                             <td><input type="text" class="notes-input"></td>
                         </tr>
@@ -116,7 +116,7 @@
                             <td><input type="time" class="time-input"></td>
                             <td><input type="time" class="time-input"></td>
                             <td class="calculated-hours">-</td>
-                            <td><input type="number" class="pause-input" step="0.5" min="0" placeholder="0"></td>
+                            <td><input type="number" class="pause-input" step="1" min="0" placeholder="30"></td>
                             <td class="work-hours">-</td>
                             <td><input type="text" class="notes-input"></td>
                         </tr>
@@ -172,6 +172,7 @@
     <script src="../src/services/logout.js"></script>
     <script src="../src/services/profileDropdown.js"></script>
     <script src="../src/services/userInfo.js"></script>
+    <script src="../src/services/timeEntry.js"></script>
     <script src="../src/services/timeCalculator.js"></script>
 
 </body>

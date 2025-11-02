@@ -322,6 +322,7 @@ document.addEventListener('DOMContentLoaded', function () {
     currentWeek.weekIndex += direction; // Increment or decrement week index
     updateWeekDisplay(); // Update the UI
     resetTable(); // Clear all input fields
+    loadWeekData(); // Load data for the new week
   }
 
   /**
@@ -351,12 +352,17 @@ document.addEventListener('DOMContentLoaded', function () {
   const timeInputs  = timeTable.querySelectorAll('.time-input:not([disabled])');
   const pauseInputs = timeTable.querySelectorAll('.pause-input');
 
+  console.log('Found time inputs:', timeInputs.length);
+  console.log('Found pause inputs:', pauseInputs.length);
+
   // Add event listeners to recalculate hours when inputs change
   timeInputs.forEach(i => { 
+    i.addEventListener('input', calculateRowHours); 
     i.addEventListener('change', calculateRowHours); 
     i.addEventListener('blur', calculateRowHours); 
   });
   pauseInputs.forEach(i => { 
+    i.addEventListener('input', calculateRowHours);
     i.addEventListener('change', calculateRowHours); 
     i.addEventListener('blur', calculateRowHours); 
   });
@@ -368,31 +374,46 @@ document.addEventListener('DOMContentLoaded', function () {
    * @param {Event} event - The change/blur event from the input field
    */
   function calculateRowHours(event) {
+    console.log('calculateRowHours called!', event.type, event.target.value);
+    
     const row = event.target.closest('tr'); // Find the parent row
-    if (!row) return;
+    if (!row) {
+      console.log('No row found!');
+      return;
+    }
 
     // Get all the input fields and display cells for this row
-    const fromInput    = row.querySelector('.time-input:first-of-type'); // Start time (e.g., "08:00")
-    const toInput      = row.querySelector('.time-input:last-of-type');  // End time (e.g., "17:00")
+    const timeInputs   = row.querySelectorAll('.time-input');
+    const fromInput    = timeInputs[0]; // First time input (Von)
+    const toInput      = timeInputs[1]; // Second time input (Bis)
     const pauseInput   = row.querySelector('.pause-input');              // Pause hours (e.g., "1.0")
     const hoursCell    = row.querySelector('.calculated-hours');         // Total hours display
     const workHoursCell= row.querySelector('.work-hours');               // Work hours display (total - pause)
 
-    if (!fromInput || !toInput || !pauseInput || !hoursCell || !workHoursCell) return;
+    console.log('From:', fromInput?.value, 'To:', toInput?.value, 'Pause:', pauseInput?.value);
+
+    if (!fromInput || !toInput || !pauseInput || !hoursCell || !workHoursCell) {
+      console.log('Missing elements!');
+      return;
+    }
 
     const fromTime   = fromInput.value;  // e.g., "08:00"
     const toTime     = toInput.value;    // e.g., "17:00"
-    const pauseHours = parseFloat(pauseInput.value) || 0; // e.g., 1.0
+    const pauseMinutes = parseFloat(pauseInput.value) || 0; // e.g., 30 (minutes)
 
     // If both start and end times are provided, calculate hours
     if (fromTime && toTime) {
       const totalHours   = calculateTimeDifference(fromTime, toTime); // e.g., 9.0 hours
-      const workingHours = Math.max(0, totalHours - pauseHours);      // e.g., 8.0 hours (9 - 1)
+      const pauseHours   = pauseMinutes / 60; // Convert minutes to hours (e.g., 30 min = 0.5 hours)
+      const workingHours = Math.max(0, totalHours - pauseHours);      // e.g., 8.5 hours (9 - 0.5)
+      
+      console.log('Calculated - Total:', totalHours, 'Pause Hours:', pauseHours, 'Working:', workingHours);
       
       hoursCell.textContent = totalHours.toFixed(1);    // Display total hours
       workHoursCell.textContent = workingHours.toFixed(1); // Display work hours
     } else {
       // If times are incomplete, show dashes
+      console.log('Missing times, showing dashes');
       hoursCell.textContent = '-';
       workHoursCell.textContent = '-';
     }
@@ -475,18 +496,164 @@ document.addEventListener('DOMContentLoaded', function () {
     if (totalElement) totalElement.textContent = '-';
   }
 
+  // ---------- Form Lock/Unlock ----------
+  /**
+   * Locks the form when the week has been submitted (status is not 'offen')
+   * Only locks rows that have data entered, empty rows remain editable
+   */
+  function lockForm() {
+    console.log('Locking form - week has been submitted');
+    
+    // Get all rows (excluding total row)
+    const rows = timeTable.querySelectorAll('tbody tr:not(.total-row)');
+    
+    rows.forEach(row => {
+      // Get inputs for this row
+      const timeInputs = row.querySelectorAll('.time-input:not([disabled])');
+      const pauseInput = row.querySelector('.pause-input');
+      const notesInput = row.querySelector('.notes-input:not([disabled])');
+      
+      // Check if this row has any data entered
+      const hasStartTime = timeInputs[0] && timeInputs[0].value && timeInputs[0].value !== '00:00';
+      const hasEndTime = timeInputs[1] && timeInputs[1].value && timeInputs[1].value !== '00:00';
+      const hasPause = pauseInput && pauseInput.value;
+      const hasNotes = notesInput && notesInput.value;
+      
+      // If row has data, lock it
+      if (hasStartTime || hasEndTime || hasPause || hasNotes) {
+        // Lock time inputs
+        timeInputs.forEach(input => {
+          input.readOnly = true;
+          input.style.backgroundColor = '#f3f4f6';
+          input.style.cursor = 'not-allowed';
+          input.style.color = '#9ca3af';
+        });
+        
+        // Lock pause input
+        if (pauseInput) {
+          pauseInput.readOnly = true;
+          pauseInput.style.backgroundColor = '#f3f4f6';
+          pauseInput.style.cursor = 'not-allowed';
+          pauseInput.style.color = '#9ca3af';
+        }
+        
+        // Lock notes input
+        if (notesInput) {
+          notesInput.readOnly = true;
+          notesInput.style.backgroundColor = '#f3f4f6';
+          notesInput.style.cursor = 'not-allowed';
+          notesInput.style.color = '#9ca3af';
+        }
+      }
+      // If row is empty, leave it editable (do nothing)
+    });
+    
+    // Keep submit button enabled so user can add more days
+    // But change text to indicate it's an update
+    const submitBtn = document.getElementById('submitBtn');
+    if (submitBtn) {
+      submitBtn.textContent = 'Aktualisieren';
+    }
+  }
+
+  /**
+   * Unlocks the form when the week is still open (status is 'offen')
+   * Makes all inputs editable again
+   */
+  function unlockForm() {
+    console.log('Unlocking form - week is still open');
+    
+    // Enable all time inputs
+    const timeInputs = timeTable.querySelectorAll('.time-input:not([disabled])');
+    timeInputs.forEach(input => {
+      input.readOnly = false;
+      input.style.backgroundColor = '';
+      input.style.cursor = '';
+      input.style.color = '';
+    });
+    
+    // Enable all pause inputs
+    const pauseInputs = timeTable.querySelectorAll('.pause-input');
+    pauseInputs.forEach(input => {
+      input.readOnly = false;
+      input.style.backgroundColor = '';
+      input.style.cursor = '';
+      input.style.color = '';
+    });
+    
+    // Enable all notes inputs
+    const notesInputs = timeTable.querySelectorAll('.notes-input:not([disabled])');
+    notesInputs.forEach(input => {
+      input.readOnly = false;
+      input.style.backgroundColor = '';
+      input.style.cursor = '';
+      input.style.color = '';
+    });
+    
+    // Enable submit and reset buttons
+    const submitBtn = document.getElementById('submitBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.style.backgroundColor = '';
+      submitBtn.style.cursor = '';
+      submitBtn.textContent = 'Senden'; // Reset button text
+    }
+    if (resetBtn) {
+      resetBtn.disabled = false;
+      resetBtn.style.backgroundColor = '';
+      resetBtn.style.cursor = '';
+    }
+  }
+
   // EVENT LISTENER: Wire up the reset button
   const resetBtn = document.getElementById('resetBtn');
   if (resetBtn) resetBtn.addEventListener('click', () => resetTable());
 
-  // ---------- Submit (demo) ----------
+  // ---------- Submit ----------
   const submitBtn = document.getElementById('submitBtn');
   if (submitBtn) {
-    submitBtn.addEventListener('click', function () {
-      const tableData = collectTableData(); // Collect all data from the table
-      console.log('Submitting time data:', tableData); // Log to console for debugging
-      alert('Zeiterfassung wurde erfolgreich gesendet!'); // Show success message
+    submitBtn.addEventListener('click', async function () {
+      console.log('Submit button clicked!');
+      
+      const tableData = collectTableData();
+      console.log('Collected table data:', tableData);
+      
+      if (!window.timeEntryService) {
+        console.error('timeEntryService not found!');
+        alert('Fehler: timeEntryService ist nicht geladen');
+        return;
+      }
+      
+      try {
+        // Disable button during submission
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Wird gesendet...';
+
+        // Convert to API format and submit
+        console.log('Converting to API format...');
+        const apiData = window.timeEntryService.convertToAPIFormat(tableData);
+        console.log('API data:', apiData);
+        
+        console.log('Sending to server...');
+        const result = await window.timeEntryService.submitWeek(apiData);
+        
+        alert('Zeiterfassung wurde erfolgreich gesendet!');
+        
+        // Reload the week data to update status
+        await loadWeekData();
+        
+        console.log('Submission result:', result);
+      } catch (error) {
+        alert('Fehler beim Senden: ' + error.message);
+        console.error('Submit error:', error);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Senden';
+      }
     });
+  } else {
+    console.error('Submit button not found!')
   }
 
   /**
@@ -503,8 +670,9 @@ document.addEventListener('DOMContentLoaded', function () {
     rows.forEach(row => {
       const day       = row.querySelector('.day-label').textContent; // e.g., "Montag"
       const date      = row.querySelector('.day').textContent;       // e.g., "27.10"
-      const fromTime  = row.querySelector('.time-input:first-of-type').value; // e.g., "08:00"
-      const toTime    = row.querySelector('.time-input:last-of-type').value;  // e.g., "17:00"
+      const timeInputs = row.querySelectorAll('.time-input');
+      const fromTime  = timeInputs[0]?.value || ''; // First time input (Von)
+      const toTime    = timeInputs[1]?.value || ''; // Second time input (Bis)
       const pauseIn   = row.querySelector('.pause-input');
       const pause     = pauseIn ? pauseIn.value : '0'; // Pause hours
       const notes     = row.querySelector('.notes-input').value; // Notes/comments
@@ -524,20 +692,100 @@ document.addEventListener('DOMContentLoaded', function () {
     // Get the week information for the export
     const weekDates = getWeekDates(fridaysInMonth(currentWeek.year, currentWeek.month)[currentWeek.weekIndex]);
     const displayWeekNo = getDisplayWeekNumber(weekDates[0], currentWeek.year, currentWeek.month); // Week number for display
+    
+    // Calculate globally unique week number: (month * 5) + weekNumber
+    // This ensures October Week 4 (54) != November Week 4 (59)
+    const globalWeekNumber = (currentWeek.month * 5) + displayWeekNo;
 
     // Return complete dataset
     return {
       year: currentWeek.year,              // e.g., 2025
       month: currentWeek.month + 1,        // e.g., 11 (month as 1-12)
-      weekNumber: displayWeekNo,           // e.g., 2
+      weekNumber: globalWeekNumber,        // e.g., 54 (globally unique)
       weekRange: dateElement.textContent.trim(), // e.g., "27.10 - 02.11"
       weekData: data,                      // Array of daily entries
       totalHours: document.getElementById('totalWorkHours').textContent // Total work hours
     };
   }
 
+  // ---------- Load week data on navigation ----------
+  async function loadWeekData() {
+    try {
+      // Get the correct week dates for the current display
+      const frs = fridaysInMonth(currentWeek.year, currentWeek.month);
+      const weekDates = getWeekDates(frs[currentWeek.weekIndex]);
+      const displayWeekNo = getDisplayWeekNumber(weekDates[0], currentWeek.year, currentWeek.month);
+      
+      // Calculate globally unique week number
+      const globalWeekNumber = (currentWeek.month * 5) + displayWeekNo;
+      
+      console.log(`Loading data for week ${displayWeekNo} (global: ${globalWeekNumber}) of month ${currentWeek.month + 1}/${currentWeek.year}`);
+      
+      const data = await window.timeEntryService.loadWeek(globalWeekNumber, currentWeek.year);
+      
+      if (data.entries && data.entries.length > 0) {
+        console.log('Found existing data, populating table...');
+        window.timeEntryService.populateTable(data.entries);
+      } else {
+        console.log('No entries found for this week');
+      }
+      
+      // Update status display
+      const statusText = document.getElementById('statusText');
+      if (statusText && data.status) {
+        const statusMap = {
+          'offen': 'Offen',
+          'gesendet': 'Gesendet',
+          'bestaetigt': 'Bestätigt',
+          'erledigt': 'Erledigt'
+        };
+        statusText.textContent = statusMap[data.status] || data.status;
+        
+        // Set status color (only the status text, not the "Status:" label)
+        switch(data.status) {
+          case 'offen':
+            statusText.style.color = '#6b7280'; // Gray
+            break;
+          case 'gesendet':
+            statusText.style.color = '#f59e0b'; // Orange
+            break;
+          case 'bestaetigt':
+            statusText.style.color = '#10b981'; // Green
+            break;
+          case 'erledigt':
+            statusText.style.color = '#3b82f6'; // Blue
+            break;
+        }
+        
+        // Lock form if status is not 'offen'
+        if (data.status !== 'offen') {
+          lockForm();
+        } else {
+          unlockForm();
+        }
+      } else if (statusText) {
+        // No submission yet - show as Offen (Open)
+        statusText.textContent = 'Offen';
+        statusText.style.color = '#6b7280';
+        unlockForm();
+      }
+      
+      console.log('Week loaded:', data);
+    } catch (error) {
+      console.log('No existing data for this week:', error);
+      // Reset status to Offen when no data exists
+      const statusText = document.getElementById('statusText');
+      if (statusText) {
+        statusText.textContent = 'Offen';
+        statusText.style.color = '#6b7280';
+      }
+      unlockForm();
+    }
+  }
+
   // ---------- Init ----------
   // Initialize the page: check URL parameters and display the current week
   initializeFromURL();  // Load week from URL if parameters exist
   updateWeekDisplay();  // Render the week display
+  loadWeekData(); // Load existing data if available
 });

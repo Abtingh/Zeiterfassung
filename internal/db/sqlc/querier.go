@@ -7,14 +7,23 @@ package db
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Querier interface {
+	CreateTimeEntry(ctx context.Context, arg CreateTimeEntryParams) (TimeEntry, error)
+	CreateWeeklySubmission(ctx context.Context, arg CreateWeeklySubmissionParams) (WeeklySubmission, error)
+	DeleteTimeEntriesBySubmission(ctx context.Context, submissionID uuid.UUID) error
 	GetPublicUserBySessionToken(ctx context.Context, sessionToken pgtype.Text) (GetPublicUserBySessionTokenRow, error)
+	GetTimeEntriesBySubmission(ctx context.Context, submissionID uuid.UUID) ([]TimeEntry, error)
 	GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error)
 	GetUserBySessionToken(ctx context.Context, sessionToken pgtype.Text) (User, error)
+	GetWeeklySubmission(ctx context.Context, arg GetWeeklySubmissionParams) (WeeklySubmission, error)
+	GetWeeklySubmissionsByID(ctx context.Context, id uuid.UUID) (WeeklySubmission, error)
+	UpdateTimeEntry(ctx context.Context, arg UpdateTimeEntryParams) (TimeEntry, error)
 	UpdateUserTokens(ctx context.Context, arg UpdateUserTokensParams) error
+	UpdateWeeklySubmissionStatus(ctx context.Context, arg UpdateWeeklySubmissionStatusParams) (WeeklySubmission, error)
 }
 
 var _ Querier = (*Queries)(nil)

@@ -22,10 +22,11 @@ type Server struct {
 // Parameters:
 //   - addr: The address the server will listen on (e.g., ":8080").
 //   - queries: A pointer to a db.Queries instance for database operations.
+//   - dbConn: The database connection pool for transactions.
 //
 // Returns:
 //   - A pointer to the initialized Server.
-func NewServer(addr string, queries *db.Queries) *Server {
+func NewServer(addr string, queries *db.Queries, dbConn db.DBTX) *Server {
 	mux := http.NewServeMux()
 
 	// Serve static files from the public directory
@@ -38,7 +39,7 @@ func NewServer(addr string, queries *db.Queries) *Server {
 	})
 
 	// Registriert die Routen aus dem Package routes.
-	handler := handlers.NewHandler(queries)
+	handler := handlers.NewHandlerWithDB(queries, dbConn)
 	routes.Register(mux, handler)
 
 	return &Server{

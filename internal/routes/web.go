@@ -24,6 +24,10 @@ func Register(mux *http.ServeMux, handler *handlers.Handler) {
 	// Student pages
 	mux.HandleFunc("/ZeitEintragen", handler.StudentZeitEintragenHandler)
 
+	// Time Entry API endpoints
+	mux.HandleFunc("/api/time-entries/submit", handler.SubmitWeeklyTimeEntriesHandler)
+	mux.HandleFunc("/api/time-entries/week", handler.GetWeeklyTimeEntriesHandler)
+
 	// Errors
 	mux.HandleFunc("/error/authentication", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "./public/public-static/error/authentication.html")

@@ -60,7 +60,7 @@ func main() {
 
 	// Server-Adresse erstellen und neuen Server starten
 	address := fmt.Sprintf(":%s", cfg.APPPORT)
-	server := server.NewServer(address, queries)
+	server := server.NewServer(address, queries, dbPool)
 
 	// Server starten und Fehler behandeln
 	if err := server.Start(); err != nil {

@@ -12,9 +12,17 @@ import (
 )
 
 const getPublicUserBySessionToken = `-- name: GetPublicUserBySessionToken :one
-SELECT id, first_name, last_name, email, role, team_id, start_date
+SELECT
+    id,
+    first_name,
+    last_name,
+    email,
+    role,
+    team_id,
+    start_date
 FROM users
-WHERE session_token = $1
+WHERE
+    session_token = $1
 LIMIT 1
 `
 
@@ -45,18 +53,19 @@ func (q *Queries) GetPublicUserBySessionToken(ctx context.Context, sessionToken 
 
 const getUserByEmail = `-- name: GetUserByEmail :one
 SELECT
-  id,
-  first_name,
-  last_name,
-  email,
-  password_hash,
-  session_token,
-  csrf_token,
-  role,
-  team_id,
-  start_date
+    id,
+    first_name,
+    last_name,
+    email,
+    password_hash,
+    session_token,
+    csrf_token,
+    role,
+    team_id,
+    start_date
 FROM users
-WHERE email = $1
+WHERE
+    email = $1
 `
 
 type GetUserByEmailRow struct {
@@ -91,8 +100,11 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEm
 }
 
 const getUserBySessionToken = `-- name: GetUserBySessionToken :one
-SELECT id, first_name, last_name, email, password_hash, session_token, csrf_token, role, team_id, start_date, created_at, updated_at FROM users
-WHERE session_token = $1 AND session_token IS NOT NULL
+SELECT id, first_name, last_name, email, password_hash, session_token, csrf_token, role, team_id, start_date, created_at, updated_at
+FROM users
+WHERE
+    session_token = $1
+    AND session_token IS NOT NULL
 LIMIT 1
 `
 
@@ -118,9 +130,11 @@ func (q *Queries) GetUserBySessionToken(ctx context.Context, sessionToken pgtype
 
 const updateUserTokens = `-- name: UpdateUserTokens :exec
 UPDATE users
-SET    session_token = $1,
-       csrf_token    = $2
-WHERE  id            = $3
+SET
+    session_token = $1,
+    csrf_token = $2
+WHERE
+    id = $3
 `
 
 type UpdateUserTokensParams struct {
