@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/Abtingh/Zeiterfassung/internal/api/handlers"
+	"github.com/Abtingh/Zeiterfassung/internal/api/middleware"
 )
 
 // Register sets up the HTTP routes for the application using the provided ServeMux and Handler.
@@ -15,18 +16,18 @@ import (
 //	mux     - the HTTP request multiplexer to register routes on
 //	handler - the Handler struct containing the handler functions for each route
 func Register(mux *http.ServeMux, handler *handlers.Handler) {
-	mux.HandleFunc("/login", handler.LoginHandler)
-	mux.HandleFunc("/logout", handler.LogoutHandler)
-	mux.HandleFunc("/home", handler.HomeHandler)
-	mux.HandleFunc("/reset-passwort/", handler.ResetPasswordHandler)
-	mux.HandleFunc("/me", handler.MeHandler)
+	mux.HandleFunc("/login", middleware.NoCache(handler.LoginHandler))
+	mux.HandleFunc("/logout", middleware.NoCache(handler.LogoutHandler))
+	mux.HandleFunc("/home", middleware.NoCache(handler.HomeHandler))
+	mux.HandleFunc("/reset-passwort/", middleware.NoCache(handler.ResetPasswordHandler))
+	mux.HandleFunc("/me", middleware.NoCache(handler.MeHandler))
 
 	// Student pages
-	mux.HandleFunc("/ZeitEintragen", handler.StudentZeitEintragenHandler)
+	mux.HandleFunc("/ZeitEintragen", middleware.NoCache(handler.StudentZeitEintragenHandler))
 
 	// Time Entry API endpoints
-	mux.HandleFunc("/api/time-entries/submit", handler.SubmitWeeklyTimeEntriesHandler)
-	mux.HandleFunc("/api/time-entries/week", handler.GetWeeklyTimeEntriesHandler)
+	mux.HandleFunc("/api/time-entries/submit", middleware.NoCache(handler.SubmitWeeklyTimeEntriesHandler))
+	mux.HandleFunc("/api/time-entries/week", middleware.NoCache(handler.GetWeeklyTimeEntriesHandler))
 
 	// Errors
 	mux.HandleFunc("/error/authentication", func(w http.ResponseWriter, r *http.Request) {

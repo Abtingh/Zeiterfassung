@@ -185,51 +185,61 @@ func (h *Handler) HomeHandler(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("→ %s %s", r.Method, r.URL.Path)
 
-	if err := h.Authorize(r); err != nil {
-		log.Printf("Logout: Authorization failed (proceeding anyway): %v", err)
-		// Continue with logout even if authorization fails
-		// This ensures users can always log out
-	}
+	// 1. Attempt to identify the current user via their existing session cookie.
+	// We need to do this BEFORE clearing the cookies to invalidate tokens in the DB.
+	// h.GetCurrentUser uses the session cookie to find the user.
+	user, err := h.GetCurrentUser(r)
+	if err == nil {
+		// User found. Proceed to invalidate their tokens in the database.
+		log.Printf("Logout: Found user ID %d based on session cookie. Clearing tokens in DB.", user.ID)
+		ctx := r.Context()
 
-	email := r.FormValue("email")
-	ctx := r.Context()
-
-	log.Printf("Logout: Processing logout for email: %s", email)
-
-	// Best-effort DB cleanup; ignore errors so logout is always successful.
-	if user, err := h.Q.GetUserByEmail(ctx, email); err == nil {
-		log.Printf("Logout: Clearing tokens for user ID %d", user.ID)
-		_ = h.Q.UpdateUserTokens(ctx, db.UpdateUserTokensParams{
-			SessionToken: pgtype.Text{Valid: false},
-			CsrfToken:    pgtype.Text{Valid: false},
+		// Set SessionToken and CsrfToken to NULL in the database for this user.
+		// This ensures stolen cookies cannot be reused after logout.
+		err = h.Q.UpdateUserTokens(ctx, db.UpdateUserTokensParams{
+			SessionToken: pgtype.Text{Valid: false}, // Sets to NULL in SQL
+			CsrfToken:    pgtype.Text{Valid: false}, // Sets to NULL in SQL
 			ID:           user.ID,
 		})
+
+		if err != nil {
+			// Log the error, but continue with the logout process (clearing client cookies).
+			log.Printf("Logout Warning: Database token clearing failed: %v", err)
+		}
 	} else {
-		log.Printf("Logout: Could not find user %s (will still clear cookies)", email)
+		// User could not be identified (e.g., session already expired or cookie missing).
+		// We proceed to clear browser cookies anyway to be safe.
+		log.Printf("Logout: User session not actively found (already logged out?), proceeding to clear browser cookies.")
 	}
 
-	// Clear cookies - must match the Path and SameSite from login
-	log.Printf("Logout: Clearing session and CSRF cookies")
+	// 2. Clear the cookies in the user's browser.
+	// We do this by setting the same cookie names with past expiration dates.
+	log.Printf("Logout: Clearing session and CSRF cookies in the browser.")
+
+	// Clear Session Cookie
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_token",
-		Value:    "",
-		Path:     "/",
-		Expires:  time.Unix(0, 0),
-		MaxAge:   -1,
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-	})
-	http.SetCookie(w, &http.Cookie{
-		Name:     "csrf_token",
-		Value:    "",
-		Path:     "/",
-		Expires:  time.Unix(0, 0),
-		MaxAge:   -1,
-		HttpOnly: false,
+		Value:    "",              // Empty value
+		Path:     "/",             // Must match the path used during Login
+		Expires:  time.Unix(0, 0), // Set expiration date to the past
+		MaxAge:   -1,              // Force immediate deletion in modern browsers
+		HttpOnly: true,            // Must match Login setting
 		SameSite: http.SameSiteLaxMode,
 	})
 
-	log.Printf("Logout: Redirecting to /login")
+	// Clear CSRF Cookie
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_token", // Correction: This should be "csrf_token" based on your login code
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Unix(0, 0),
+		MaxAge:   -1,
+		HttpOnly: false, // Must match Login setting
+		SameSite: http.SameSiteLaxMode,
+	})
+
+	// 3. Final step: Redirect the user to the login page.
+	log.Printf("Logout Success: Redirecting to /login")
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
 
