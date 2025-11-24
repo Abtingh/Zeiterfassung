@@ -1,5 +1,5 @@
 package handlers
-/*
+
 import (
 	"database/sql"
 	"encoding/json"
@@ -33,10 +33,9 @@ type SubmitWeekRequest struct {
 type WeekResponse struct {
 	Entries []db.TimeEntry `json:"entries"`
 	Status  string         `json:"status"`
-}*/
+}
 
-
-/* // SubmitWeeklyTimeEntriesHandler handles submission of a full week's time entries
+// SubmitWeeklyTimeEntriesHandler handles submission of a full week's time entries
 func (h *Handler) SubmitWeeklyTimeEntriesHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("→ %s %s", r.Method, r.URL.Path)
 
@@ -232,9 +231,8 @@ func (h *Handler) SubmitWeeklyTimeEntriesHandler(w http.ResponseWriter, r *http.
 		"message":      "Time entries submitted successfully",
 		"submissionId": submissionID,
 	})
-}*/
+}
 
-/*
 // GetWeeklyTimeEntriesHandler retrieves time entries for a specific week
 func (h *Handler) GetWeeklyTimeEntriesHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("→ %s %s", r.Method, r.URL.Path)
@@ -329,4 +327,35 @@ func (h *Handler) GetWeeklyTimeEntriesHandler(w http.ResponseWriter, r *http.Req
 		Entries: entries,
 		Status:  string(submission.Status),
 	})
-}*/
+}
+
+// StudentZeitEintragenHandler serves the Zeit Eintragen page for students
+func (h *Handler) StudentZeitEintragenHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("→ %s %s", r.Method, r.URL.Path)
+
+	// Only allow GET requests
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Ensure user is authenticated
+	if err := h.Authorize(r); err != nil {
+		log.Printf("StudentZeitEintragenHandler: Authorization failed: %v", err)
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	// Get current user to verify they are a student (optional security check)
+	user, err := h.GetCurrentUser(r)
+	if err != nil {
+		log.Printf("StudentZeitEintragenHandler: GetCurrentUser failed: %v", err)
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	log.Printf("Serving Zeit Eintragen page for user %s with role: %s", user.Email, user.Role)
+
+	// Serve the Zeit Eintragen HTML file
+	http.ServeFile(w, r, "./public/public-static/student_ZeitEintragen.html")
+}

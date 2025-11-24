@@ -138,6 +138,7 @@ func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+/*
 // HomeHandler serves the appropriate home page based on the user's role.
 func (h *Handler) HomeHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("→ %s %s", r.Method, r.URL.Path)
@@ -179,7 +180,7 @@ func (h *Handler) HomeHandler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Serving student_home.html for role: '%s'", user.Role)
 		http.ServeFile(w, r, "./public/public-static/student_home.html")
 	}
-}
+} */
 
 // LogoutHandler clears cookies and resets the tokens in the DB.
 func (h *Handler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
@@ -312,7 +313,7 @@ func (h *Handler) ResetPasswordHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
 }
-
+/*
 // StudentZeitEintragenHandler serves the Zeit Eintragen page for students
 func (h *Handler) StudentZeitEintragenHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("→ %s %s", r.Method, r.URL.Path)
@@ -343,3 +344,4 @@ func (h *Handler) StudentZeitEintragenHandler(w http.ResponseWriter, r *http.Req
 	// Serve the Zeit Eintragen HTML file
 	http.ServeFile(w, r, "./public/public-static/student_ZeitEintragen.html")
 }
+*/

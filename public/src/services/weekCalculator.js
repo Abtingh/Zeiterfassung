@@ -249,7 +249,7 @@ function updateStatusDisplay(element, status) {
       element.classList.add('accepted');
       element.innerHTML = `
         <p>Bestätigt</p>
-        <img src="../assets/iconAccepted.svg" alt="">
+        <img src="/assets/iconAccepted.svg" alt="">
       `;
       break;
 
@@ -257,7 +257,7 @@ function updateStatusDisplay(element, status) {
       element.classList.add('sent');
       element.innerHTML = `
         <p>Gesendet</p>
-        <img src="../assets/iconSent.svg" alt="">
+        <img src="/assets/iconSent.svg" alt="">
       `;
       break;
 
@@ -265,7 +265,7 @@ function updateStatusDisplay(element, status) {
       element.classList.add('open');
       element.innerHTML = `
         <p>Offen</p>
-        <img src="../assets/iconOpen.svg" alt="">
+        <img src="/assets/iconOpen.svg" alt="">
       `;
       break;
 
@@ -273,7 +273,7 @@ function updateStatusDisplay(element, status) {
       element.classList.add('needReview');
       element.innerHTML = `
         <p>Erledigt</p>
-        <img src="../assets/iconNeedReview.svg" alt="">
+        <img src="/assets/iconNeedReview.svg" alt="">
       `;
       break;
 

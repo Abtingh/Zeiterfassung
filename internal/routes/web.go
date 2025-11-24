@@ -25,6 +25,10 @@ func Register(mux *http.ServeMux, handler *handlers.Handler) {
 	// Student pages
 	mux.HandleFunc("/ZeitEintragen", middleware.NoCache(handler.StudentZeitEintragenHandler))
 
+	// Admin pages
+	mux.HandleFunc("/admin/users/create", middleware.NoCache(handler.CreateUserHandler)) // POST
+	mux.HandleFunc("/admin/users/list", middleware.NoCache(handler.ListUsersHandler))    // GET
+
 	// Time Entry API endpoints
 	mux.HandleFunc("/api/time-entries/submit", middleware.NoCache(handler.SubmitWeeklyTimeEntriesHandler))
 	mux.HandleFunc("/api/time-entries/week", middleware.NoCache(handler.GetWeeklyTimeEntriesHandler))
