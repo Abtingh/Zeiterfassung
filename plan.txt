@@ -56,7 +56,28 @@ Based on the analysis, here's the remaining work organized by priority:
 
 ---
 
-### **Phase 3: Role-Based Dashboard Routing**
+
+### **Phase 3: Admin Features** 
+
+**Tasks:**
+
+1. **Create in `admin.go`**:
+   - `UpdateUserHandler` - Edit user details (email, role, team assignment)
+   - `DeleteUserHandler` - Remove users from system
+
+2. **Write SQL queries**:
+   - `UpdateUser` done
+   - `DeleteUser` done
+
+3. **Register routes**:
+   ```
+   /admin/users/update (PUT/POST) done
+   /admin/users/delete (DELETE/POST) done
+   ```
+
+---
+
+### **Phase 4: Role-Based Dashboard Routing** Skip this Phase
 
 **Goal:** Redirect users to their specific dashboard after login.
 
@@ -69,26 +90,6 @@ Based on the analysis, here's the remaining work organized by priority:
      - Admin → `/admin/users/list`
      - Supervisor → `/supervisor/pending-entries`
      - Accounting → `/accounting/approved-entries`
-
----
-
-### **Phase 4: Optional Admin Features** (Lower Priority)
-
-**Tasks:**
-
-1. **Create in `admin.go`**:
-   - `UpdateUserHandler` - Edit user details (email, role, team assignment)
-   - `DeleteUserHandler` - Remove users from system
-
-2. **Write SQL queries**:
-   - `UpdateUser`
-   - `DeleteUser`
-
-3. **Register routes**:
-   ```
-   /admin/users/update (PUT/POST)
-   /admin/users/delete (DELETE/POST)
-   ```
 
 ---
 
@@ -124,9 +125,9 @@ Based on the analysis, here's the remaining work organized by priority:
 - ✅ Authentication (login/logout)
 - ✅ Student time entry submission
 - ✅ Admin user management
+- ✅ Role-based routing ( skipping this)
 - ⏳ **Supervisor approval workflow** ← START HERE
 - ⏳ Accounting view
-- ⏳ Role-based routing
 - ⏳ Testing & polish
 
 ---
