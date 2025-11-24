@@ -138,50 +138,6 @@ func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-/*
-// HomeHandler serves the appropriate home page based on the user's role.
-func (h *Handler) HomeHandler(w http.ResponseWriter, r *http.Request) {
-	log.Printf("→ %s %s", r.Method, r.URL.Path)
-	log.Printf("HomeHandler: Cookies received: %v", r.Header.Get("Cookie"))
-
-	if r.Method == http.MethodOptions {
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-		w.WriteHeader(http.StatusNoContent)
-		return
-	} // Ensure user is authenticated
-	if err := h.Authorize(r); err != nil {
-		log.Printf("Authorization failed: %v", err)
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-
-	// Get current user from session
-	user, err := h.GetCurrentUser(r)
-	if err != nil {
-		log.Printf("GetCurrentUser failed: %v", err)
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-
-	log.Printf("Serving home page for user %s with role: '%s' (length: %d)", user.Email, user.Role, len(user.Role))
-
-	// Serve the correct home page based on user's role
-	switch user.Role {
-	case "supervisor":
-		log.Printf("Serving teamleiter_home.html for supervisor")
-		http.ServeFile(w, r, "./public/public-static/teamleiter_home.html")
-	case "admin":
-		log.Printf("Serving admin_home.html for admin")
-		http.ServeFile(w, r, "./public/public-static/admin_home.html")
-	case "accounting":
-		log.Printf("Serving buch_home.html for accounting")
-		http.ServeFile(w, r, "./public/public-static/buch_home.html")
-	default: // student or any other role
-		log.Printf("Serving student_home.html for role: '%s'", user.Role)
-		http.ServeFile(w, r, "./public/public-static/student_home.html")
-	}
-} */
-
 // LogoutHandler clears cookies and resets the tokens in the DB.
 func (h *Handler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("→ %s %s", r.Method, r.URL.Path)
@@ -313,35 +269,3 @@ func (h *Handler) ResetPasswordHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
 }
-/*
-// StudentZeitEintragenHandler serves the Zeit Eintragen page for students
-func (h *Handler) StudentZeitEintragenHandler(w http.ResponseWriter, r *http.Request) {
-	log.Printf("→ %s %s", r.Method, r.URL.Path)
-
-	// Only allow GET requests
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	// Ensure user is authenticated
-	if err := h.Authorize(r); err != nil {
-		log.Printf("StudentZeitEintragenHandler: Authorization failed: %v", err)
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-
-	// Get current user to verify they are a student (optional security check)
-	user, err := h.GetCurrentUser(r)
-	if err != nil {
-		log.Printf("StudentZeitEintragenHandler: GetCurrentUser failed: %v", err)
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-
-	log.Printf("Serving Zeit Eintragen page for user %s with role: %s", user.Email, user.Role)
-
-	// Serve the Zeit Eintragen HTML file
-	http.ServeFile(w, r, "./public/public-static/student_ZeitEintragen.html")
-}
-*/
