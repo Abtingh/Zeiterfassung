@@ -12,6 +12,8 @@ import (
 )
 
 type Querier interface {
+	// Approve a weekly submission (set status to 'bestaetigt')
+	ApproveWeeklySubmission(ctx context.Context, arg ApproveWeeklySubmissionParams) (ApproveWeeklySubmissionRow, error)
 	CreateTeam(ctx context.Context, arg CreateTeamParams) (CreateTeamRow, error)
 	CreateTimeEntry(ctx context.Context, arg CreateTimeEntryParams) (TimeEntry, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error)
@@ -19,19 +21,33 @@ type Querier interface {
 	DeleteTeam(ctx context.Context, id int64) error
 	DeleteTimeEntriesBySubmission(ctx context.Context, submissionID uuid.UUID) error
 	DeleteUser(ctx context.Context, id int64) error
+	// Get all weekly submissions with status 'gesendet' for students under this supervisor
+	GetPendingSubmissionsForSupervisor(ctx context.Context, supervisorID pgtype.Int8) ([]GetPendingSubmissionsForSupervisorRow, error)
 	GetPublicUserBySessionToken(ctx context.Context, sessionToken pgtype.Text) (GetPublicUserBySessionTokenRow, error)
+	// Get all students in a specific team
+	GetStudentByTeamID(ctx context.Context, teamID pgtype.Int8) ([]GetStudentByTeamIDRow, error)
+	// Get all teams where the user is a supervisor
+	GetSupervisorTeams(ctx context.Context, supervisorID pgtype.Int8) ([]GetSupervisorTeamsRow, error)
 	GetTimeEntriesBySubmission(ctx context.Context, submissionID uuid.UUID) ([]TimeEntry, error)
+	// Get all time entries for a specific weekly submission
+	GetTimeEntriesBySubmissionID(ctx context.Context, submissionID uuid.UUID) ([]GetTimeEntriesBySubmissionIDRow, error)
 	GetUser(ctx context.Context, id int64) (GetUserRow, error)
 	GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error)
 	GetUserBySessionToken(ctx context.Context, sessionToken pgtype.Text) (User, error)
 	GetWeeklySubmission(ctx context.Context, arg GetWeeklySubmissionParams) (WeeklySubmission, error)
+	// Get a specific weekly submission with user details
+	GetWeeklySubmissionByID(ctx context.Context, id uuid.UUID) (GetWeeklySubmissionByIDRow, error)
 	GetWeeklySubmissionsByID(ctx context.Context, id uuid.UUID) (WeeklySubmission, error)
 	ListTeams(ctx context.Context) ([]ListTeamsRow, error)
 	ListUsers(ctx context.Context) ([]ListUsersRow, error)
+	// Reject a weekly submission (set status to 'korrektur')
+	RejectWeeklySubmission(ctx context.Context, arg RejectWeeklySubmissionParams) (RejectWeeklySubmissionRow, error)
 	UpdateTimeEntry(ctx context.Context, arg UpdateTimeEntryParams) (TimeEntry, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (UpdateUserRow, error)
 	UpdateUserTokens(ctx context.Context, arg UpdateUserTokensParams) error
 	UpdateWeeklySubmissionStatus(ctx context.Context, arg UpdateWeeklySubmissionStatusParams) (WeeklySubmission, error)
+	// Verify that a submission belongs to a student under this supervisor
+	VerifySubmissionBelongsToSupervisor(ctx context.Context, arg VerifySubmissionBelongsToSupervisorParams) (bool, error)
 }
 
 var _ Querier = (*Queries)(nil)

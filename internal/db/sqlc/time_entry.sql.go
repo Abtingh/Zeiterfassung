@@ -12,6 +12,48 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const approveWeeklySubmission = `-- name: ApproveWeeklySubmission :one
+UPDATE weekly_submissions
+SET 
+    status = 'bestaetigt',
+    approved_at = NOW(),
+    processed_by = $2,
+    updated_at = NOW()
+WHERE id = $1
+RETURNING id, user_id, week_number, year, status, approved_at, processed_by
+`
+
+type ApproveWeeklySubmissionParams struct {
+	ID          uuid.UUID   `json:"id"`
+	ProcessedBy pgtype.Int8 `json:"processed_by"`
+}
+
+type ApproveWeeklySubmissionRow struct {
+	ID          uuid.UUID            `json:"id"`
+	UserID      int64                `json:"user_id"`
+	WeekNumber  int32                `json:"week_number"`
+	Year        int32                `json:"year"`
+	Status      SubmissionStatusEnum `json:"status"`
+	ApprovedAt  pgtype.Timestamptz   `json:"approved_at"`
+	ProcessedBy pgtype.Int8          `json:"processed_by"`
+}
+
+// Approve a weekly submission (set status to 'bestaetigt')
+func (q *Queries) ApproveWeeklySubmission(ctx context.Context, arg ApproveWeeklySubmissionParams) (ApproveWeeklySubmissionRow, error) {
+	row := q.db.QueryRow(ctx, approveWeeklySubmission, arg.ID, arg.ProcessedBy)
+	var i ApproveWeeklySubmissionRow
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.WeekNumber,
+		&i.Year,
+		&i.Status,
+		&i.ApprovedAt,
+		&i.ProcessedBy,
+	)
+	return i, err
+}
+
 const createTimeEntry = `-- name: CreateTimeEntry :one
 INSERT INTO
     time_entries (
@@ -111,6 +153,147 @@ func (q *Queries) DeleteTimeEntriesBySubmission(ctx context.Context, submissionI
 	return err
 }
 
+const getPendingSubmissionsForSupervisor = `-- name: GetPendingSubmissionsForSupervisor :many
+SELECT 
+    ws.id,
+    ws.user_id,
+    ws.week_number,
+    ws.year,
+    ws.status,
+    ws.submitted_at,
+    u.first_name,
+    u.last_name,
+    u.email
+FROM weekly_submissions ws
+JOIN users u ON ws.user_id = u.id
+JOIN teams t ON u.team_id = t.id
+WHERE t.supervisor_id = $1 
+  AND ws.status = 'gesendet'
+ORDER BY ws.year DESC, ws.week_number DESC, u.last_name
+`
+
+type GetPendingSubmissionsForSupervisorRow struct {
+	ID          uuid.UUID            `json:"id"`
+	UserID      int64                `json:"user_id"`
+	WeekNumber  int32                `json:"week_number"`
+	Year        int32                `json:"year"`
+	Status      SubmissionStatusEnum `json:"status"`
+	SubmittedAt pgtype.Timestamptz   `json:"submitted_at"`
+	FirstName   pgtype.Text          `json:"first_name"`
+	LastName    pgtype.Text          `json:"last_name"`
+	Email       string               `json:"email"`
+}
+
+// Get all weekly submissions with status 'gesendet' for students under this supervisor
+func (q *Queries) GetPendingSubmissionsForSupervisor(ctx context.Context, supervisorID pgtype.Int8) ([]GetPendingSubmissionsForSupervisorRow, error) {
+	rows, err := q.db.Query(ctx, getPendingSubmissionsForSupervisor, supervisorID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetPendingSubmissionsForSupervisorRow{}
+	for rows.Next() {
+		var i GetPendingSubmissionsForSupervisorRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.WeekNumber,
+			&i.Year,
+			&i.Status,
+			&i.SubmittedAt,
+			&i.FirstName,
+			&i.LastName,
+			&i.Email,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getStudentByTeamID = `-- name: GetStudentByTeamID :many
+SELECT id, first_name, last_name, email, role, team_id, start_date
+FROM users
+WHERE team_id = $1 AND role = 'student'
+ORDER BY last_name, first_name
+`
+
+type GetStudentByTeamIDRow struct {
+	ID        int64       `json:"id"`
+	FirstName pgtype.Text `json:"first_name"`
+	LastName  pgtype.Text `json:"last_name"`
+	Email     string      `json:"email"`
+	Role      RoleEnum    `json:"role"`
+	TeamID    pgtype.Int8 `json:"team_id"`
+	StartDate pgtype.Date `json:"start_date"`
+}
+
+// Get all students in a specific team
+func (q *Queries) GetStudentByTeamID(ctx context.Context, teamID pgtype.Int8) ([]GetStudentByTeamIDRow, error) {
+	rows, err := q.db.Query(ctx, getStudentByTeamID, teamID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetStudentByTeamIDRow{}
+	for rows.Next() {
+		var i GetStudentByTeamIDRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.FirstName,
+			&i.LastName,
+			&i.Email,
+			&i.Role,
+			&i.TeamID,
+			&i.StartDate,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getSupervisorTeams = `-- name: GetSupervisorTeams :many
+SELECT id, name, supervisor_id
+FROM teams
+WHERE supervisor_id = $1
+`
+
+type GetSupervisorTeamsRow struct {
+	ID           int64       `json:"id"`
+	Name         string      `json:"name"`
+	SupervisorID pgtype.Int8 `json:"supervisor_id"`
+}
+
+// Get all teams where the user is a supervisor
+func (q *Queries) GetSupervisorTeams(ctx context.Context, supervisorID pgtype.Int8) ([]GetSupervisorTeamsRow, error) {
+	rows, err := q.db.Query(ctx, getSupervisorTeams, supervisorID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetSupervisorTeamsRow{}
+	for rows.Next() {
+		var i GetSupervisorTeamsRow
+		if err := rows.Scan(&i.ID, &i.Name, &i.SupervisorID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getTimeEntriesBySubmission = `-- name: GetTimeEntriesBySubmission :many
 SELECT id, submission_id, entry_date, start_time, end_time, break_min, duration_h, note, created_at, updated_at
 FROM time_entries
@@ -139,6 +322,62 @@ func (q *Queries) GetTimeEntriesBySubmission(ctx context.Context, submissionID u
 			&i.Note,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getTimeEntriesBySubmissionID = `-- name: GetTimeEntriesBySubmissionID :many
+SELECT 
+    id,
+    submission_id,
+    entry_date,
+    start_time,
+    end_time,
+    break_min,
+    duration_h,
+    note
+FROM time_entries
+WHERE submission_id = $1
+ORDER BY entry_date
+`
+
+type GetTimeEntriesBySubmissionIDRow struct {
+	ID           uuid.UUID      `json:"id"`
+	SubmissionID uuid.UUID      `json:"submission_id"`
+	EntryDate    pgtype.Date    `json:"entry_date"`
+	StartTime    pgtype.Time    `json:"start_time"`
+	EndTime      pgtype.Time    `json:"end_time"`
+	BreakMin     pgtype.Int4    `json:"break_min"`
+	DurationH    pgtype.Numeric `json:"duration_h"`
+	Note         pgtype.Text    `json:"note"`
+}
+
+// Get all time entries for a specific weekly submission
+func (q *Queries) GetTimeEntriesBySubmissionID(ctx context.Context, submissionID uuid.UUID) ([]GetTimeEntriesBySubmissionIDRow, error) {
+	rows, err := q.db.Query(ctx, getTimeEntriesBySubmissionID, submissionID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetTimeEntriesBySubmissionIDRow{}
+	for rows.Next() {
+		var i GetTimeEntriesBySubmissionIDRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.SubmissionID,
+			&i.EntryDate,
+			&i.StartTime,
+			&i.EndTime,
+			&i.BreakMin,
+			&i.DurationH,
+			&i.Note,
 		); err != nil {
 			return nil, err
 		}
@@ -185,6 +424,61 @@ func (q *Queries) GetWeeklySubmission(ctx context.Context, arg GetWeeklySubmissi
 	return i, err
 }
 
+const getWeeklySubmissionByID = `-- name: GetWeeklySubmissionByID :one
+SELECT 
+    ws.id,
+    ws.user_id,
+    ws.week_number,
+    ws.year,
+    ws.status,
+    ws.submitted_at,
+    ws.approved_at,
+    ws.processed_by,
+    u.first_name,
+    u.last_name,
+    u.email,
+    u.team_id
+FROM weekly_submissions ws
+JOIN users u ON ws.user_id = u.id
+WHERE ws.id = $1
+`
+
+type GetWeeklySubmissionByIDRow struct {
+	ID          uuid.UUID            `json:"id"`
+	UserID      int64                `json:"user_id"`
+	WeekNumber  int32                `json:"week_number"`
+	Year        int32                `json:"year"`
+	Status      SubmissionStatusEnum `json:"status"`
+	SubmittedAt pgtype.Timestamptz   `json:"submitted_at"`
+	ApprovedAt  pgtype.Timestamptz   `json:"approved_at"`
+	ProcessedBy pgtype.Int8          `json:"processed_by"`
+	FirstName   pgtype.Text          `json:"first_name"`
+	LastName    pgtype.Text          `json:"last_name"`
+	Email       string               `json:"email"`
+	TeamID      pgtype.Int8          `json:"team_id"`
+}
+
+// Get a specific weekly submission with user details
+func (q *Queries) GetWeeklySubmissionByID(ctx context.Context, id uuid.UUID) (GetWeeklySubmissionByIDRow, error) {
+	row := q.db.QueryRow(ctx, getWeeklySubmissionByID, id)
+	var i GetWeeklySubmissionByIDRow
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.WeekNumber,
+		&i.Year,
+		&i.Status,
+		&i.SubmittedAt,
+		&i.ApprovedAt,
+		&i.ProcessedBy,
+		&i.FirstName,
+		&i.LastName,
+		&i.Email,
+		&i.TeamID,
+	)
+	return i, err
+}
+
 const getWeeklySubmissionsByID = `-- name: GetWeeklySubmissionsByID :one
 SELECT id, user_id, week_number, year, status, submitted_at, approved_at, processed_by, processed_at, created_at, updated_at FROM weekly_submissions WHERE id = $1
 `
@@ -204,6 +498,48 @@ func (q *Queries) GetWeeklySubmissionsByID(ctx context.Context, id uuid.UUID) (W
 		&i.ProcessedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const rejectWeeklySubmission = `-- name: RejectWeeklySubmission :one
+UPDATE weekly_submissions
+SET 
+    status = 'korrektur',
+    approved_at = NULL,
+    processed_by = $2,
+    updated_at = NOW()
+WHERE id = $1
+RETURNING id, user_id, week_number, year, status, approved_at, processed_by
+`
+
+type RejectWeeklySubmissionParams struct {
+	ID          uuid.UUID   `json:"id"`
+	ProcessedBy pgtype.Int8 `json:"processed_by"`
+}
+
+type RejectWeeklySubmissionRow struct {
+	ID          uuid.UUID            `json:"id"`
+	UserID      int64                `json:"user_id"`
+	WeekNumber  int32                `json:"week_number"`
+	Year        int32                `json:"year"`
+	Status      SubmissionStatusEnum `json:"status"`
+	ApprovedAt  pgtype.Timestamptz   `json:"approved_at"`
+	ProcessedBy pgtype.Int8          `json:"processed_by"`
+}
+
+// Reject a weekly submission (set status to 'korrektur')
+func (q *Queries) RejectWeeklySubmission(ctx context.Context, arg RejectWeeklySubmissionParams) (RejectWeeklySubmissionRow, error) {
+	row := q.db.QueryRow(ctx, rejectWeeklySubmission, arg.ID, arg.ProcessedBy)
+	var i RejectWeeklySubmissionRow
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.WeekNumber,
+		&i.Year,
+		&i.Status,
+		&i.ApprovedAt,
+		&i.ProcessedBy,
 	)
 	return i, err
 }
@@ -289,4 +625,27 @@ func (q *Queries) UpdateWeeklySubmissionStatus(ctx context.Context, arg UpdateWe
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const verifySubmissionBelongsToSupervisor = `-- name: VerifySubmissionBelongsToSupervisor :one
+SELECT EXISTS(
+    SELECT 1
+    FROM weekly_submissions ws
+    JOIN users u ON ws.user_id = u.id
+    JOIN teams t ON u.team_id = t.id
+    WHERE ws.id = $1 AND t.supervisor_id = $2
+) AS is_authorized
+`
+
+type VerifySubmissionBelongsToSupervisorParams struct {
+	ID           uuid.UUID   `json:"id"`
+	SupervisorID pgtype.Int8 `json:"supervisor_id"`
+}
+
+// Verify that a submission belongs to a student under this supervisor
+func (q *Queries) VerifySubmissionBelongsToSupervisor(ctx context.Context, arg VerifySubmissionBelongsToSupervisorParams) (bool, error) {
+	row := q.db.QueryRow(ctx, verifySubmissionBelongsToSupervisor, arg.ID, arg.SupervisorID)
+	var is_authorized bool
+	err := row.Scan(&is_authorized)
+	return is_authorized, err
 }
