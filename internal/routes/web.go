@@ -35,6 +35,12 @@ func Register(mux *http.ServeMux, handler *handlers.Handler) {
 
 	// Supervisor API endpoints
 	mux.HandleFunc("/api/supervisor/pending-entries", middleware.NoCache(handler.GetPendingTimeEntriesHandler))
+	mux.HandleFunc("/api/supervisor/students", middleware.NoCache(handler.GetStudentsForSupervisorHandler))
+	mux.HandleFunc("/api/supervisor/approve", middleware.NoCache(handler.ApproveSubmissionHandler))
+	mux.HandleFunc("/api/supervisor/reject", middleware.NoCache(handler.RejectSubmissionHandler))
+
+	// Supervisor pages
+	mux.HandleFunc("/ZeitGenehmigen", middleware.NoCache(handler.SupervisorZeitGenehmigenHandler))
 
 	// Errors
 	mux.HandleFunc("/error/authentication", func(w http.ResponseWriter, r *http.Request) {
