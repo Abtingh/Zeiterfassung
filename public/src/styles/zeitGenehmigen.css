@@ -334,3 +334,80 @@
     font-size: 20px;
     cursor: pointer;
 }
+
+/* Enhanced responsive styles for tablets (iPad) */
+@media (max-width: 1024px) {
+    #tableHeader {
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    
+    #studentDropDown select {
+        width: 180px;
+        font-size: 14px;
+        padding: 8px 30px 8px 14px;
+    }
+    
+    #studentDropDown {
+        margin-left: 20px;
+    }
+    
+    #btnGroup {
+        width: 90%;
+    }
+    
+    #submitBtn, #editBtn {
+        width: 120px;
+        font-size: 16px;
+        padding: 10px;
+    }
+    
+    #submitBtn {
+        margin-left: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    #mainContent {
+        margin: 10px auto 80px;
+    }
+    
+    #tableHeader {
+        flex-direction: column;
+        align-items: center;
+        width: 98%;
+    }
+    
+    #studentDropDown {
+        margin-left: 0;
+        order: 0;
+    }
+    
+    #studentDropDown select {
+        width: 200px;
+    }
+    
+    #dateAndWeek {
+        order: 1;
+    }
+    
+    #statusHolder {
+        order: 2;
+    }
+    
+    #btnGroup {
+        width: 95%;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    #submitBtn, #editBtn {
+        width: 100%;
+        max-width: 200px;
+    }
+    
+    #submitBtn {
+        margin-left: 0;
+    }
+}

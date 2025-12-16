@@ -170,3 +170,70 @@ button:hover {
 #userSelectHolder select {
     width: 100%;
 }
+
+/* Responsive styles for tablets (iPad) */
+@media (max-width: 1024px) {
+    #formContainer {
+        width: 90%;
+        max-width: 600px;
+        padding: 30px 35px;
+    }
+    
+    h2 {
+        font-size: 26px;
+    }
+    
+    #inputGroup {
+        column-gap: 20px;
+        row-gap: 15px;
+    }
+}
+
+@media (max-width: 768px) {
+    #mainContent {
+        padding: 20px 15px 100px 15px !important;
+    }
+    
+    #formContainer {
+        width: 95%;
+        padding: 25px 20px;
+    }
+    
+    h2 {
+        font-size: 22px;
+    }
+    
+    #inputGroup {
+        grid-template-columns: 1fr;
+        row-gap: 15px;
+    }
+    
+    .inputfield.full-width {
+        grid-column: 1;
+    }
+    
+    label {
+        font-size: 14px;
+    }
+    
+    input[type="text"], input[type="email"], input[type="password"],
+    input[type="date"], select {
+        height: 42px;
+        font-size: 13px;
+    }
+    
+    #buttonContainer {
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 25px;
+    }
+    
+    button {
+        width: 100%;
+        min-width: auto;
+    }
+    
+    #generatePasswordBtn {
+        width: 100%;
+    }
+}

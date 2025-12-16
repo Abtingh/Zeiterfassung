@@ -241,6 +241,85 @@
             background: #f8f9fa;
             border-radius: 10px;
         }
+
+        /* Responsive styles for tablets (iPad) */
+        @media (max-width: 1024px) {
+            #mainContent {
+                padding: 25px 20px;
+            }
+
+            .page-title {
+                font-size: 26px;
+            }
+
+            .teams-container {
+                max-width: 100%;
+            }
+
+            .team-selector {
+                max-width: 100%;
+            }
+
+            .supervisor-select {
+                min-width: 180px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            #mainContent {
+                padding: 20px 15px 100px 15px;
+            }
+
+            .page-title {
+                font-size: 22px;
+                margin-bottom: 20px;
+            }
+
+            .team-header {
+                flex-direction: column;
+                gap: 10px;
+                padding: 12px 15px;
+            }
+
+            .team-name {
+                font-size: 16px;
+            }
+
+            .team-body {
+                padding: 15px;
+            }
+
+            .supervisor-display {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+
+            .supervisor-select {
+                min-width: 100%;
+            }
+
+            .btn-change,
+            .btn-delete {
+                width: 100%;
+                padding: 10px;
+            }
+
+            .team-actions {
+                width: 100%;
+            }
+
+            .member-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .no-selection {
+                padding: 40px 15px;
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
 

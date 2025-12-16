@@ -165,3 +165,104 @@
     color: #FFA629;
     font-weight: bold;
 }
+
+/* Responsive styles for tablets (iPad) */
+@media (max-width: 1024px) {
+    .toolbar {
+        width: 90%;
+        max-width: 580px;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin: 30px 0 0;
+    }
+    
+    .studentDropDown {
+        margin-left: 20px;
+    }
+    
+    .studentDropDown select {
+        width: 180px;
+        font-size: 14px;
+    }
+    
+    .monthHead {
+        position: static;
+        width: 200px;
+    }
+    
+    #monthLabel {
+        font-size: 18px;
+    }
+    
+    .weekOverview {
+        width: 90%;
+        max-width: 650px;
+    }
+    
+    .WochenStatus {
+        width: 100%;
+        padding: 0 15px;
+    }
+    
+    .weekCard {
+        width: 100%;
+        height: 80px;
+        font-size: 20px;
+    }
+    
+    .weekHolder, .statusHolder {
+        width: 160px;
+        height: 45px;
+    }
+}
+
+@media (max-width: 768px) {
+    .toolbar {
+        width: 95%;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+        margin: 20px 0 0;
+    }
+    
+    .studentDropDown {
+        margin-left: 0;
+        order: 0;
+    }
+    
+    .monthHead {
+        order: 1;
+        width: 180px;
+    }
+    
+    .toolbar-spacer {
+        display: none;
+    }
+    
+    .weekOverview {
+        width: 95%;
+        margin-top: 20px;
+    }
+    
+    .WochenStatus {
+        margin-top: 25px;
+        padding: 0 10px;
+    }
+    
+    .weekCard {
+        height: 70px;
+        font-size: 16px;
+        padding: 0 10px;
+    }
+    
+    .weekHolder, .statusHolder {
+        width: 120px;
+        height: 40px;
+        font-size: 14px;
+    }
+    
+    .weekHolder img, .statusHolder img {
+        min-width: 20px;
+        min-height: 20px;
+    }
+}

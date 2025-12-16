@@ -95,6 +95,36 @@
             color: #721c24;
             display: block;
         }
+
+        /* Responsive styles for tablets (iPad) */
+        @media (max-width: 1024px) {
+            #formContainer {
+                max-width: 90%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            #mainContent {
+                padding: 20px 15px 100px 15px !important;
+            }
+
+            #formContainer {
+                max-width: 95%;
+                padding: 20px;
+            }
+
+            #titleContainer h2 {
+                font-size: 22px;
+            }
+
+            #buttonContainer {
+                flex-direction: column;
+            }
+
+            #buttonContainer button {
+                padding: 14px;
+            }
+        }
     </style>
 </head>
 

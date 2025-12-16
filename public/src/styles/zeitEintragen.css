@@ -295,3 +295,171 @@
     font-size: 20px;
     cursor: pointer;
 }
+
+/* Responsive styles for tablets (iPad) */
+@media (max-width: 1200px) {
+    #timeTable {
+        width: 95%;
+    }
+    
+    #tableHeader {
+        width: 95%;
+    }
+    
+    #btnGroup {
+        width: 85%;
+    }
+}
+
+@media (max-width: 1024px) {
+    #mainContent {
+        margin: 20px auto 0;
+    }
+    
+    #tableHeader {
+        flex-wrap: wrap;
+        gap: 15px;
+        padding: 12px 10px 0;
+    }
+    
+    #weekHolder {
+        font-size: 16px;
+    }
+    
+    #dateHolder {
+        font-size: 18px;
+    }
+    
+    #statusHolder {
+        font-size: 16px;
+    }
+    
+    #timeTable th {
+        padding: 12px 6px;
+        font-size: 14px;
+    }
+    
+    #timeTable td {
+        padding: 10px 6px;
+    }
+    
+    .day-label {
+        width: 80px;
+        font-size: 14px;
+    }
+    
+    .time-input {
+        width: 70px;
+        min-width: 70px;
+        font-size: 13px;
+    }
+    
+    .pause-input {
+        width: 50px;
+        font-size: 13px;
+    }
+    
+    .notes-input {
+        width: 100px;
+        font-size: 13px;
+    }
+    
+    #submitBtn {
+        font-size: 16px;
+        padding: 10px 16px;
+        min-width: 120px;
+    }
+    
+    #resetBtn {
+        font-size: 16px;
+        width: 120px;
+        padding: 10px 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    #mainContent {
+        margin: 10px auto 80px;
+        padding-bottom: 20px;
+    }
+    
+    #tableHeader {
+        width: 98%;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    #dateAndWeek {
+        order: 1;
+    }
+    
+    #statusHolder {
+        order: 2;
+        font-size: 14px;
+    }
+    
+    #timeTable {
+        width: 98%;
+        font-size: 11px;
+    }
+    
+    #timeTable th {
+        padding: 10px 4px;
+        font-size: 11px;
+    }
+    
+    #timeTable td {
+        padding: 8px 4px;
+    }
+    
+    .day-label {
+        width: 40px;
+        font-size: 12px;
+    }
+    
+    .time-input {
+        width: 55px;
+        min-width: 55px;
+        font-size: 11px;
+        padding: 4px 2px;
+    }
+    
+    .pause-input {
+        width: 40px;
+        font-size: 11px;
+        padding: 4px 2px;
+    }
+    
+    .notes-input {
+        width: 70px;
+        font-size: 11px;
+        padding: 4px 2px;
+    }
+    
+    .calculated-hours,
+    .work-hours {
+        font-size: 11px;
+    }
+    
+    #btnGroup {
+        width: 95%;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        margin: 15px 0;
+    }
+    
+    #submitBtn {
+        width: 100%;
+        max-width: 200px;
+        margin-left: 0;
+        font-size: 16px;
+    }
+    
+    #resetBtn {
+        width: 100%;
+        max-width: 200px;
+        font-size: 16px;
+    }
+}

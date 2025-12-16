@@ -145,3 +145,92 @@
 .weekCard:active {
     transform: translateY(0);
 }
+
+/* Responsive styles for tablets (iPad) */
+@media (max-width: 1024px) {
+    .weekOverview {
+        width: 90%;
+        max-width: 650px;
+    }
+    
+    .monthHead {
+        width: 60%;
+        font-size: 24px;
+    }
+    
+    .WochenStatus {
+        width: 100%;
+        padding: 0 15px;
+    }
+    
+    .weekCard {
+        width: 100%;
+        height: 80px;
+        font-size: 20px;
+        padding: 0 15px;
+    }
+    
+    .weekHolder {
+        width: 160px;
+        height: 45px;
+    }
+    
+    .statusHolder {
+        width: 160px;
+        height: 45px;
+    }
+}
+
+@media (max-width: 768px) {
+    .weekOverview {
+        width: 95%;
+        margin-top: 20px;
+    }
+    
+    .monthHead {
+        width: 80%;
+        font-size: 20px;
+        margin: 20px 0 0;
+    }
+    
+    .iconBtn {
+        width: 30px;
+        height: 30px;
+        font-size: 24px;
+    }
+    
+    .WochenStatus {
+        margin-top: 25px;
+        padding: 0 10px;
+    }
+    
+    .weekCard {
+        height: 70px;
+        font-size: 16px;
+        padding: 0 10px;
+    }
+    
+    .weekHolder {
+        width: 120px;
+        height: 40px;
+        font-size: 14px;
+    }
+    
+    .weekHolder img {
+        min-width: 20px;
+        min-height: 20px;
+        padding-right: 10px;
+    }
+    
+    .statusHolder {
+        width: 120px;
+        height: 40px;
+        font-size: 14px;
+    }
+    
+    .statusHolder img {
+        min-width: 20px;
+        min-height: 20px;
+        padding-left: 6px;
+    }
+}
