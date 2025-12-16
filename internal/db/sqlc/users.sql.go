@@ -120,6 +120,46 @@ func (q *Queries) DeleteUser(ctx context.Context, id int64) error {
 	return err
 }
 
+const getAllSupervisors = `-- name: GetAllSupervisors :many
+SELECT id, first_name, last_name, email
+FROM users
+WHERE
+    role = 'supervisor'
+ORDER BY id
+`
+
+type GetAllSupervisorsRow struct {
+	ID        int64       `json:"id"`
+	FirstName pgtype.Text `json:"first_name"`
+	LastName  pgtype.Text `json:"last_name"`
+	Email     string      `json:"email"`
+}
+
+func (q *Queries) GetAllSupervisors(ctx context.Context) ([]GetAllSupervisorsRow, error) {
+	rows, err := q.db.Query(ctx, getAllSupervisors)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetAllSupervisorsRow{}
+	for rows.Next() {
+		var i GetAllSupervisorsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.FirstName,
+			&i.LastName,
+			&i.Email,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getPublicUserBySessionToken = `-- name: GetPublicUserBySessionToken :one
 SELECT
     id,
@@ -158,6 +198,50 @@ func (q *Queries) GetPublicUserBySessionToken(ctx context.Context, sessionToken 
 		&i.StartDate,
 	)
 	return i, err
+}
+
+const getTeamMembers = `-- name: GetTeamMembers :many
+SELECT u.id, u.first_name, u.last_name, u.email, u.role, u.team_id
+FROM users u
+WHERE
+    u.team_id = $1
+ORDER BY u.id
+`
+
+type GetTeamMembersRow struct {
+	ID        int64       `json:"id"`
+	FirstName pgtype.Text `json:"first_name"`
+	LastName  pgtype.Text `json:"last_name"`
+	Email     string      `json:"email"`
+	Role      RoleEnum    `json:"role"`
+	TeamID    pgtype.Int8 `json:"team_id"`
+}
+
+func (q *Queries) GetTeamMembers(ctx context.Context, teamID pgtype.Int8) ([]GetTeamMembersRow, error) {
+	rows, err := q.db.Query(ctx, getTeamMembers, teamID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetTeamMembersRow{}
+	for rows.Next() {
+		var i GetTeamMembersRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.FirstName,
+			&i.LastName,
+			&i.Email,
+			&i.Role,
+			&i.TeamID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getUser = `-- name: GetUser :one
@@ -310,6 +394,55 @@ func (q *Queries) ListTeams(ctx context.Context) ([]ListTeamsRow, error) {
 	return items, nil
 }
 
+const listTeamsWithDetails = `-- name: ListTeamsWithDetails :many
+SELECT
+    t.id,
+    t.name,
+    t.supervisor_id,
+    u.first_name as supervisor_first_name,
+    u.last_name as supervisor_last_name,
+    u.email as supervisor_email
+FROM teams t
+    LEFT JOIN users u ON t.supervisor_id = u.id
+ORDER BY t.id
+`
+
+type ListTeamsWithDetailsRow struct {
+	ID                  int64       `json:"id"`
+	Name                string      `json:"name"`
+	SupervisorID        pgtype.Int8 `json:"supervisor_id"`
+	SupervisorFirstName pgtype.Text `json:"supervisor_first_name"`
+	SupervisorLastName  pgtype.Text `json:"supervisor_last_name"`
+	SupervisorEmail     pgtype.Text `json:"supervisor_email"`
+}
+
+func (q *Queries) ListTeamsWithDetails(ctx context.Context) ([]ListTeamsWithDetailsRow, error) {
+	rows, err := q.db.Query(ctx, listTeamsWithDetails)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListTeamsWithDetailsRow{}
+	for rows.Next() {
+		var i ListTeamsWithDetailsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.SupervisorID,
+			&i.SupervisorFirstName,
+			&i.SupervisorLastName,
+			&i.SupervisorEmail,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listUsers = `-- name: ListUsers :many
 SELECT
     id,
@@ -359,6 +492,36 @@ func (q *Queries) ListUsers(ctx context.Context) ([]ListUsersRow, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateTeamSupervisor = `-- name: UpdateTeamSupervisor :one
+UPDATE teams
+SET
+    supervisor_id = $2
+WHERE
+    id = $1
+RETURNING
+    id,
+    name,
+    supervisor_id
+`
+
+type UpdateTeamSupervisorParams struct {
+	ID           int64       `json:"id"`
+	SupervisorID pgtype.Int8 `json:"supervisor_id"`
+}
+
+type UpdateTeamSupervisorRow struct {
+	ID           int64       `json:"id"`
+	Name         string      `json:"name"`
+	SupervisorID pgtype.Int8 `json:"supervisor_id"`
+}
+
+func (q *Queries) UpdateTeamSupervisor(ctx context.Context, arg UpdateTeamSupervisorParams) (UpdateTeamSupervisorRow, error) {
+	row := q.db.QueryRow(ctx, updateTeamSupervisor, arg.ID, arg.SupervisorID)
+	var i UpdateTeamSupervisorRow
+	err := row.Scan(&i.ID, &i.Name, &i.SupervisorID)
+	return i, err
 }
 
 const updateUser = `-- name: UpdateUser :one
@@ -418,6 +581,25 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (UpdateU
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const updateUserPassword = `-- name: UpdateUserPassword :exec
+UPDATE users
+SET
+    password_hash = $2,
+    updated_at = NOW()
+WHERE
+    id = $1
+`
+
+type UpdateUserPasswordParams struct {
+	ID           int64  `json:"id"`
+	PasswordHash string `json:"password_hash"`
+}
+
+func (q *Queries) UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error {
+	_, err := q.db.Exec(ctx, updateUserPassword, arg.ID, arg.PasswordHash)
+	return err
 }
 
 const updateUserTokens = `-- name: UpdateUserTokens :exec

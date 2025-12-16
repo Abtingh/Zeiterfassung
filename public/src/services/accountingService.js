@@ -137,23 +137,30 @@ class AccountingService {
 
     /**
      * Get time entries for a specific submission
-     * @param {number} weekNumber - Week number
-     * @param {number} year - Year
-     * @param {number} userId - User ID (for accounting to view student's entries)
-     * @returns {Promise<Object>} Week data with entries
+     * @param {string} submissionId - Submission UUID
+     * @returns {Promise<Array>} Array of time entries
      */
-    async getTimeEntriesForSubmission(weekNumber, year, userId) {
+    async getTimeEntriesForSubmission(submissionId) {
         try {
-            const response = await fetch(`/api/time-entries/week?week=${weekNumber}&year=${year}&user_id=${userId}`, {
+            console.log('Fetching time entries for submission:', submissionId);
+            
+            const response = await fetch(`${this.baseUrl}/submission-entries?submission_id=${submissionId}`, {
                 method: 'GET',
                 credentials: 'include'
             });
 
+            console.log('Response status:', response.status);
+            
             if (!response.ok) {
+                const errorText = await response.text();
+                console.error('API error response:', errorText);
                 throw new Error('Failed to fetch time entries');
             }
 
-            return await response.json();
+            const data = await response.json();
+            console.log('Time entries for submission:', data);
+            
+            return data || [];
         } catch (error) {
             console.error('Error fetching time entries:', error);
             throw error;

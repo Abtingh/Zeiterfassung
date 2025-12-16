@@ -109,9 +109,22 @@ class SupervisorService {
         const studentMap = new Map();
         this.pendingSubmissions.forEach(sub => {
             if (!studentMap.has(sub.user_id)) {
+                // Handle different formats for first_name/last_name
+                let firstName = '';
+                let lastName = '';
+                
+                if (sub.first_name) {
+                    firstName = typeof sub.first_name === 'object' ? (sub.first_name.String || '') : sub.first_name;
+                }
+                if (sub.last_name) {
+                    lastName = typeof sub.last_name === 'object' ? (sub.last_name.String || '') : sub.last_name;
+                }
+                
+                const fullName = `${firstName} ${lastName}`.trim();
+                
                 studentMap.set(sub.user_id, {
                     id: sub.user_id,
-                    name: `${sub.first_name?.String || ''} ${sub.last_name?.String || ''}`.trim(),
+                    name: fullName || sub.email,
                     email: sub.email
                 });
             }

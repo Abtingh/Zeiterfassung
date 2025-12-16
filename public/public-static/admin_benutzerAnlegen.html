@@ -43,33 +43,35 @@
                         <label for="lastname">Nachname</label>
                         <input type="text" id="lastname" name="lastname" placeholder="Nachname" required>
                     </div>
-                    <div class="inputfield" id="teamHolder">
-                        <label for="team">Team</label>
-                        <input type="text" id="team" name="team" placeholder="Team" required>
-                    </div>
-                    <div class="inputfield" id="passwordHolder">
-                        <label for="password">Passwort</label>
-                        <input type="password" id="password" name="password" placeholder="Passwort" required>
-                    </div>
                     <div class="inputfield" id="emailHolder">
                         <label for="email">E-Mail</label>
                         <input type="email" id="email" name="email" placeholder="E-Mail" required>
                     </div>
-                    <div class="inputfield" id="confirmPasswordHolder">
-                        <label for="confirmPassword">Passwort bestätigen</label>
-                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Passwort bestätigen" required>
-                    </div>
-                    <div class="inputfield" id="teamleader_EmailHolder">
-                        <label for="teamleader_Email">Vorgesetzter E-Mail</label>
-                        <input type="email" id="teamleader_Email" name="teamleader_Email" placeholder="Vorgesetzter E-Mail" required>
+                    <div class="inputfield" id="teamHolder">
+                        <label for="team">Team</label>
+                        <select id="team" name="team">
+                            <option value="" selected>Kein Team</option>
+                        </select>
                     </div>
                     <div class="inputfield" id="roleHolder">
                         <label for="role">Rolle</label>
                         <select id="role" name="role" required>
-                            <option value="role" selected disabled>Role</option>
+                            <option value="" selected disabled>Rolle wählen</option>
                             <option value="admin">Admin</option>
-                            <option value="user">Benutzer</option>
+                            <option value="supervisor">Supervisor</option>
+                            <option value="student">Student</option>
+                            <option value="accounting">Buchhalter</option>
                         </select>
+                    </div>
+                    <div class="inputfield" id="startDateHolder">
+                        <label for="startDate">Startdatum</label>
+                        <input type="date" id="startDate" name="startDate" required>
+                    </div>
+                    <div class="inputfield" id="generatedPasswordHolder">
+                        <label for="generatedPassword">Passwort</label>
+                        <input type="text" id="generatedPassword" name="generatedPassword"
+                            placeholder="Passwort eingeben oder generieren">
+                        <button type="button" id="generatePasswordBtn">Generieren</button>
                     </div>
                 </div>
                 <div id="buttonContainer">
@@ -80,14 +82,128 @@
         </div>
         <div id="navbar">
             <ul>
-                <li><img src="../assets/iconHome.svg" alt="Home"><a href="/home">Übersicht</a></li>
-                <li><img src="../assets/iconAddUser.svg" alt="Anlegen"><a href="#">Benutzer anlegen</a></li>
-                <li><img src="../assets/iconManageUser.svg" alt="Verwalten"><a href="#">Benutzer verwalten</a></li>
+                <li><img src="/assets/iconHome.svg" alt="Home"><a href="/home">Übersicht</a></li>
+                <li class="active"><img src="/assets/iconAddUser.svg" alt="Anlegen"><a href="/BenutzerAnlegen">Benutzer
+                        anlegen</a></li>
+                <li><img src="/assets/iconManageUser.svg" alt="Verwalten"><a href="/BenutzerVerwalten">Benutzer
+                        verwalten</a></li>
+                <li><img src="/assets/iconAddUser.svg" alt="Team"><a href="/TeamHinzufuegen">Team Hinzufügen</a></li>
+                <li><img src="/assets/iconManageUser.svg" alt="Team"><a href="/TeamVerwalten">Team Verwalten</a></li>
             </ul>
         </div>
     </div>
     <script src="/src/services/logout.js"></script>
     <script src="/src/services/profileDropdown.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async function () {
+            // Load teams for dropdown
+            await loadTeams();
+
+            // Set default start date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('startDate').value = today;
+
+            // Generate initial password
+            generatePassword();
+
+            // Handle form submission
+            document.getElementById('formContainer').addEventListener('submit', handleSubmit);
+
+            // Handle reset button
+            document.getElementById('cancelButton').addEventListener('click', resetForm);
+
+            // Handle generate password button
+            document.getElementById('generatePasswordBtn').addEventListener('click', generatePassword);
+        });
+
+        function generatePassword() {
+            const length = 12;
+            const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+            let password = '';
+            for (let i = 0; i < length; i++) {
+                password += charset.charAt(Math.floor(Math.random() * charset.length));
+            }
+            document.getElementById('generatedPassword').value = password;
+        }
+
+        async function loadTeams() {
+            try {
+                const response = await fetch('/admin/teams/list', {
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    console.error('Failed to load teams');
+                    return;
+                }
+
+                const teams = await response.json();
+                const teamSelect = document.getElementById('team');
+
+                teams.forEach(team => {
+                    const option = document.createElement('option');
+                    option.value = team.id;
+                    option.textContent = team.name;
+                    teamSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading teams:', error);
+            }
+        }
+
+        async function handleSubmit(e) {
+            e.preventDefault();
+
+            const password = document.getElementById('generatedPassword').value;
+            if (!password) {
+                alert('Bitte generieren Sie ein Passwort!');
+                return;
+            }
+
+            const teamValue = document.getElementById('team').value;
+            const teamId = teamValue ? parseInt(teamValue) : null;
+
+            const userData = {
+                first_name: document.getElementById('firstname').value,
+                last_name: document.getElementById('lastname').value,
+                email: document.getElementById('email').value,
+                password: password,
+                role: document.getElementById('role').value,
+                team_id: teamId,
+                start_date: document.getElementById('startDate').value
+            };
+
+            try {
+                const response = await fetch('/admin/users/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify(userData)
+                });
+
+                if (response.ok) {
+                    const generatedPwd = document.getElementById('generatedPassword').value;
+                    alert('Benutzer erfolgreich angelegt!\n\nGeneriertes Passwort: ' + generatedPwd + '\n\nBitte notieren Sie dieses Passwort!');
+                    resetForm();
+                } else {
+                    const error = await response.json();
+                    alert('Fehler: ' + (error.error || 'Benutzer konnte nicht angelegt werden'));
+                }
+            } catch (error) {
+                console.error('Error creating user:', error);
+                alert('Fehler beim Anlegen des Benutzers');
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('formContainer').reset();
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('startDate').value = today;
+            generatePassword();
+        }
+    </script>
 </body>
 
 </html>

@@ -23,6 +23,9 @@ type Querier interface {
 	DeleteUser(ctx context.Context, id int64) error
 	// Get all students in the system for accounting dropdown
 	GetAllStudents(ctx context.Context) ([]GetAllStudentsRow, error)
+	// Get ALL weekly submissions for students under this supervisor
+	GetAllSubmissionsForSupervisor(ctx context.Context, supervisorID pgtype.Int8) ([]GetAllSubmissionsForSupervisorRow, error)
+	GetAllSupervisors(ctx context.Context) ([]GetAllSupervisorsRow, error)
 	// =====================================================================
 	// ACCOUNTING (Buchhaltung) QUERIES
 	// =====================================================================
@@ -43,6 +46,7 @@ type Querier interface {
 	GetSubmissionsForStudent(ctx context.Context, userID int64) ([]GetSubmissionsForStudentRow, error)
 	// Get all teams where the user is a supervisor
 	GetSupervisorTeams(ctx context.Context, supervisorID pgtype.Int8) ([]GetSupervisorTeamsRow, error)
+	GetTeamMembers(ctx context.Context, teamID pgtype.Int8) ([]GetTeamMembersRow, error)
 	GetTimeEntriesBySubmission(ctx context.Context, submissionID uuid.UUID) ([]TimeEntry, error)
 	// Get all time entries for a specific weekly submission
 	GetTimeEntriesBySubmissionID(ctx context.Context, submissionID uuid.UUID) ([]GetTimeEntriesBySubmissionIDRow, error)
@@ -54,13 +58,16 @@ type Querier interface {
 	GetWeeklySubmissionByID(ctx context.Context, id uuid.UUID) (GetWeeklySubmissionByIDRow, error)
 	GetWeeklySubmissionsByID(ctx context.Context, id uuid.UUID) (WeeklySubmission, error)
 	ListTeams(ctx context.Context) ([]ListTeamsRow, error)
+	ListTeamsWithDetails(ctx context.Context) ([]ListTeamsWithDetailsRow, error)
 	ListUsers(ctx context.Context) ([]ListUsersRow, error)
 	// Mark a submission as 'erledigt' (completed) by accounting
 	MarkSubmissionAsProcessed(ctx context.Context, arg MarkSubmissionAsProcessedParams) (MarkSubmissionAsProcessedRow, error)
 	// Reject a weekly submission (set status to 'korrektur')
 	RejectWeeklySubmission(ctx context.Context, arg RejectWeeklySubmissionParams) (RejectWeeklySubmissionRow, error)
+	UpdateTeamSupervisor(ctx context.Context, arg UpdateTeamSupervisorParams) (UpdateTeamSupervisorRow, error)
 	UpdateTimeEntry(ctx context.Context, arg UpdateTimeEntryParams) (TimeEntry, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (UpdateUserRow, error)
+	UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error
 	UpdateUserTokens(ctx context.Context, arg UpdateUserTokensParams) error
 	UpdateWeeklySubmissionStatus(ctx context.Context, arg UpdateWeeklySubmissionStatusParams) (WeeklySubmission, error)
 	// Verify that a submission belongs to a student under this supervisor

@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Team Verwalten</title>
+    <link rel="stylesheet" href="/src/styles/home.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        #mainContent {
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .page-title {
+            margin-bottom: 25px;
+            color: #333;
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 30px;
+            align-self: flex-start;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .teams-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .team-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .team-header {
+            background: #1370AC;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .team-name {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .team-body {
+            padding: 20px;
+        }
+
+        .supervisor-section {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .supervisor-section h4 {
+            margin: 0 0 10px 0;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .supervisor-display {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .supervisor-name {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .supervisor-select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            min-width: 200px;
+        }
+
+        .btn-change {
+            padding: 8px 16px;
+            background-color: #1370AC;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-change:hover {
+            background-color: #0f5a8a;
+        }
+
+        .btn-delete {
+            padding: 8px 16px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-delete:hover {
+            background-color: #c82333;
+        }
+
+        .team-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .members-section h4 {
+            margin: 0 0 10px 0;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .members-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .member-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .member-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .member-name {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .member-email {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .member-role {
+            font-size: 12px;
+            padding: 4px 8px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            color: #555;
+        }
+
+        .no-members {
+            color: #888;
+            font-style: italic;
+            padding: 10px;
+        }
+
+        .message {
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            display: block;
+        }
+
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .team-selector {
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .team-selector label {
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .team-selector select {
+            width: 100%;
+            height: 48px;
+            padding: 10px 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            background-color: white;
+            cursor: pointer;
+            color: #333;
+        }
+
+        .team-selector select:focus {
+            outline: none;
+            border-color: #1370AC;
+            box-shadow: 0 0 0 2px rgba(19, 112, 172, 0.1);
+        }
+
+        .no-selection {
+            text-align: center;
+            padding: 60px 20px;
+            color: #888;
+            font-style: italic;
+            font-size: 16px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="header">
+        <div id="logoContainer">
+            <h2>Zeiterfassung</h2>
+        </div>
+        <div id="iconProfile">
+            <a href="#">
+                <img src="/assets/iconProfile.svg" alt="User Icon">
+            </a>
+            <div id="profileDropDown" class="dropdown-menu hidden">
+                <ul>
+                    <li><a href="#" id="profileLink">Profil</a></li>
+                    <li><a href="/reset-passwort" id="resetPasswordLink">Passwort zurücksetzen</a></li>
+                    <li><a href="#" id="logoutLink">Ausloggen</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div id="main">
+        <div id="mainContent">
+            <h2 class="page-title">Team Verwalten</h2>
+            <div class="team-selector">
+                <label for="teamSelect">Team auswählen</label>
+                <select id="teamSelect">
+                    <option value="" selected disabled>Team wählen...</option>
+                </select>
+            </div>
+            <div id="messageBox" class="message"></div>
+            <div id="teamsContainer" class="teams-container">
+                <div class="no-selection">Bitte wählen Sie ein Team aus.</div>
+            </div>
+        </div>
+        <div id="navbar">
+            <ul>
+                <li><img src="/assets/iconHome.svg" alt="Home"><a href="/home">Übersicht</a></li>
+                <li><img src="/assets/iconAddUser.svg" alt="Anlegen"><a href="/BenutzerAnlegen">Benutzer anlegen</a>
+                </li>
+                <li><img src="/assets/iconManageUser.svg" alt="Verwalten"><a href="/BenutzerVerwalten">Benutzer
+                        verwalten</a></li>
+                <li><img src="/assets/iconAddUser.svg" alt="Team"><a href="/TeamHinzufuegen">Team Hinzufügen</a></li>
+                <li class="active"><img src="/assets/iconManageUser.svg" alt="Team"><a href="/TeamVerwalten">Team
+                        Verwalten</a></li>
+            </ul>
+        </div>
+    </div>
+    <script src="/src/services/logout.js"></script>
+    <script src="/src/services/profileDropdown.js"></script>
+    <script>
+        let allSupervisors = [];
+        let allTeams = [];
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadSupervisors();
+            await loadTeamsList();
+
+            // Handle team selection
+            document.getElementById('teamSelect').addEventListener('change', handleTeamSelect);
+        });
+
+        async function loadSupervisors() {
+            try {
+                const response = await fetch('/admin/supervisors/list', {
+                    credentials: 'include'
+                });
+                if (!response.ok) throw new Error('Failed to load supervisors');
+                allSupervisors = await response.json();
+            } catch (error) {
+                console.error('Error loading supervisors:', error);
+            }
+        }
+
+        async function loadTeamsList() {
+            const teamSelect = document.getElementById('teamSelect');
+
+            try {
+                const response = await fetch('/admin/teams/list', {
+                    credentials: 'include'
+                });
+                if (!response.ok) throw new Error('Failed to load teams');
+
+                allTeams = await response.json();
+
+                if (!allTeams || allTeams.length === 0) {
+                    teamSelect.innerHTML = '<option value="" disabled>Keine Teams vorhanden</option>';
+                    return;
+                }
+
+                // Populate team selector
+                allTeams.forEach(team => {
+                    const option = document.createElement('option');
+                    option.value = team.id;
+                    option.textContent = team.name;
+                    teamSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading teams:', error);
+            }
+        }
+
+        async function handleTeamSelect(e) {
+            const teamId = parseInt(e.target.value);
+            const team = allTeams.find(t => t.id === teamId);
+
+            if (team) {
+                await showTeamCard(team);
+            }
+        }
+
+        async function showTeamCard(team) {
+            const container = document.getElementById('teamsContainer');
+            container.innerHTML = '<div class="loading">Lade Team...</div>';
+
+            try {
+                const members = await loadTeamMembers(team.id);
+                container.innerHTML = '';
+                const teamCard = createTeamCard(team, members);
+                container.appendChild(teamCard);
+            } catch (error) {
+                container.innerHTML = '<div class="no-members">Fehler beim Laden des Teams.</div>';
+            }
+        }
+
+        async function loadTeamMembers(teamId) {
+            try {
+                const response = await fetch(`/admin/teams/members?team_id=${teamId}`, {
+                    credentials: 'include'
+                });
+                if (!response.ok) return [];
+                return await response.json() || [];
+            } catch (error) {
+                console.error('Error loading team members:', error);
+                return [];
+            }
+        }
+
+        function createTeamCard(team, members) {
+            const card = document.createElement('div');
+            card.className = 'team-card';
+            card.dataset.teamId = team.id;
+
+            const supervisorFirstName = team.supervisor_first_name?.String || team.supervisor_first_name || '';
+            const supervisorLastName = team.supervisor_last_name?.String || team.supervisor_last_name || '';
+            const supervisorEmail = team.supervisor_email?.String || team.supervisor_email || '';
+            const currentSupervisorName = supervisorFirstName || supervisorLastName
+                ? `${supervisorFirstName} ${supervisorLastName}`.trim()
+                : 'Kein Supervisor';
+
+            card.innerHTML = `
+                <div class="team-header">
+                    <span class="team-name">${team.name}</span>
+                    <div class="team-actions">
+                        <button class="btn-delete" onclick="deleteTeam(${team.id}, '${team.name}')">Löschen</button>
+                    </div>
+                </div>
+                <div class="team-body">
+                    <div class="supervisor-section">
+                        <h4>Supervisor</h4>
+                        <div class="supervisor-display">
+                            <select class="supervisor-select" data-team-id="${team.id}">
+                                <option value="">Kein Supervisor</option>
+                                ${allSupervisors.map(sup => {
+                const fn = sup.first_name?.String || sup.first_name || '';
+                const ln = sup.last_name?.String || sup.last_name || '';
+                const selected = (team.supervisor_id?.Int64 || team.supervisor_id) === sup.id ? 'selected' : '';
+                return `<option value="${sup.id}" ${selected}>${fn} ${ln} (${sup.email})</option>`;
+            }).join('')}
+                            </select>
+                            <button class="btn-change" onclick="updateSupervisor(${team.id})">Ändern</button>
+                        </div>
+                    </div>
+                    <div class="members-section">
+                        <h4>Team Mitglieder (${members.length})</h4>
+                        <div class="members-list">
+                            ${members.length > 0 ? members.map(member => {
+                const fn = member.first_name?.String || member.first_name || '';
+                const ln = member.last_name?.String || member.last_name || '';
+                const role = member.role?.String || member.role || 'student';
+                return `
+                                    <div class="member-item">
+                                        <div class="member-info">
+                                            <span class="member-name">${fn} ${ln}</span>
+                                            <span class="member-email">${member.email}</span>
+                                        </div>
+                                        <span class="member-role">${role}</span>
+                                    </div>
+                                `;
+            }).join('') : '<div class="no-members">Keine Mitglieder</div>'}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        async function updateSupervisor(teamId) {
+            const select = document.querySelector(`select[data-team-id="${teamId}"]`);
+            const supervisorId = select.value ? parseInt(select.value) : null;
+
+            try {
+                const response = await fetch('/admin/teams/update-supervisor', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        team_id: teamId,
+                        supervisor_id: supervisorId
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to update supervisor');
+                }
+
+                showMessage('Supervisor erfolgreich geändert!', 'success');
+
+                // Reload teams list and show updated card
+                setTimeout(async () => {
+                    await loadTeamsList();
+                    const team = allTeams.find(t => t.id === teamId);
+                    if (team) {
+                        document.getElementById('teamSelect').value = teamId;
+                        await showTeamCard(team);
+                    }
+                }, 1000);
+            } catch (error) {
+                showMessage(error.message, 'error');
+            }
+        }
+
+        function showMessage(text, type) {
+            const msgBox = document.getElementById('messageBox');
+            msgBox.textContent = text;
+            msgBox.className = `message ${type}`;
+
+            setTimeout(() => {
+                msgBox.className = 'message';
+            }, 3000);
+        }
+
+        async function deleteTeam(teamId, teamName) {
+            if (!confirm(`Sind Sie sicher, dass Sie das Team "${teamName}" löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/admin/teams/delete', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ id: teamId })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to delete team');
+                }
+
+                showMessage('Team erfolgreich gelöscht!', 'success');
+
+                // Reset the view and reload teams
+                document.getElementById('teamSelect').innerHTML = '<option value="" selected disabled>Team wählen...</option>';
+                document.getElementById('teamsContainer').innerHTML = '<div class="no-selection">Bitte wählen Sie ein Team aus.</div>';
+                allTeams = [];
+                await loadTeamsList();
+            } catch (error) {
+                showMessage(error.message, 'error');
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -161,16 +161,42 @@ function renderMonthWeeks(year, month0, studentId = null) {
     const card = document.createElement('div');
     card.className = 'weekCard';
     
-    // Add click functionality to navigate to time entry page with correct week index
+    // Store status for later use in click handler
+    card.dataset.status = 'loading';
+    card.dataset.studentId = studentId || '';
+    card.dataset.year = year;
+    card.dataset.month = month0 + 1;
+    card.dataset.weekIndex = i + 1;
+    
+    // Add click functionality to navigate to appropriate page
     card.addEventListener('click', function() {
-      const month = month0 + 1; // Convert to 1-indexed
-      const weekIndex = i + 1; // Week index within the month (1-based)
-      const url = `/ZeitEintragen?year=${year}&month=${month}&week=${weekIndex}`;
+      const status = this.dataset.status;
+      const studentIdFromCard = this.dataset.studentId;
+      const cardYear = this.dataset.year;
+      const cardMonth = this.dataset.month;
+      const weekIndex = this.dataset.weekIndex;
+      
+      // If supervisor is viewing student's weeks and status is 'offen', don't allow click
+      if (studentIdFromCard && status === 'offen') {
+        console.log('Cannot view week with status "offen" - student has not submitted yet');
+        return;
+      }
+      
+      // Determine the correct URL based on whether viewing own weeks or student's weeks
+      let url;
+      if (studentIdFromCard) {
+        // Supervisor viewing student's week - go to ZeitGenehmigen
+        url = `/ZeitGenehmigen?year=${cardYear}&month=${cardMonth}&week=${weekIndex}&student_id=${studentIdFromCard}`;
+      } else {
+        // User viewing own weeks - go to ZeitEintragen
+        url = `/ZeitEintragen?year=${cardYear}&month=${cardMonth}&week=${weekIndex}`;
+      }
+      
       console.log(`Navigating to: ${url}`);
       window.location.href = url;
     });
     
-    // Add hover effect
+    // Add hover effect (will be updated after status is fetched)
     card.style.cursor = 'pointer';
 
     const left = document.createElement('div');
@@ -194,9 +220,21 @@ function renderMonthWeeks(year, month0, studentId = null) {
     // Pass studentId if it's provided (supervisor viewing student's status)
     fetchWeekStatus(globalWeekNumber, year, studentId).then(status => {
       updateStatusDisplay(right, status);
+      // Update card status for click handler
+      card.dataset.status = status;
+      // Update cursor based on status (disable for 'offen' when viewing student)
+      if (studentId && status === 'offen') {
+        card.style.cursor = 'not-allowed';
+        card.style.opacity = '0.6';
+      }
     }).catch(() => {
       // Default to 'open' if fetch fails
       updateStatusDisplay(right, 'offen');
+      card.dataset.status = 'offen';
+      if (studentId) {
+        card.style.cursor = 'not-allowed';
+        card.style.opacity = '0.6';
+      }
     });
 
     card.appendChild(left);
@@ -324,16 +362,19 @@ function renderMonth() {
   renderMonthWeeks(currentDate.getFullYear(), currentDate.getMonth());
 }
 
-document.getElementById('prevBtn').addEventListener('click', () => {
-  currentDate.setMonth(currentDate.getMonth() - 1);
-  renderMonth();
-});
+// Only attach month navigation on home pages, not on ZeitGenehmigen/ZeitEintragen pages
+if (!window.location.pathname.includes('Zeit')) {
+  document.getElementById('prevBtn').addEventListener('click', () => {
+    currentDate.setMonth(currentDate.getMonth() - 1);
+    renderMonth();
+  });
 
-document.getElementById('nextBtn').addEventListener('click', () => {
-  currentDate.setMonth(currentDate.getMonth() + 1);
-  renderMonth();
-});
+  document.getElementById('nextBtn').addEventListener('click', () => {
+    currentDate.setMonth(currentDate.getMonth() + 1);
+    renderMonth();
+  });
 
-document.addEventListener('DOMContentLoaded', () => {
-  renderMonth(); // اولین بار ماه جاری
-});
+  document.addEventListener('DOMContentLoaded', () => {
+    renderMonth(); // اولین بار ماه جاری
+  });
+}

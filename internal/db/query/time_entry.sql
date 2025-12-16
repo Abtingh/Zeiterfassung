@@ -112,6 +112,17 @@ WHERE
     AND ws.status = 'gesendet'
 ORDER BY ws.year DESC, ws.week_number DESC, u.last_name;
 
+-- name: GetAllSubmissionsForSupervisor :many
+-- Get ALL weekly submissions for students under this supervisor
+SELECT ws.id, ws.user_id, ws.week_number, ws.year, ws.status, ws.submitted_at, u.first_name, u.last_name, u.email
+FROM
+    weekly_submissions ws
+    JOIN users u ON ws.user_id = u.id
+    JOIN teams t ON u.team_id = t.id
+WHERE
+    t.supervisor_id = $1
+ORDER BY ws.year DESC, ws.week_number DESC, u.last_name;
+
 -- name: GetTimeEntriesBySubmissionID :many
 -- Get all time entries for a specific weekly submission
 SELECT

@@ -220,6 +220,47 @@ func (h *Handler) GetProcessedSubmissionsHandler(w http.ResponseWriter, r *http.
 	json.NewEncoder(w).Encode(submissions)
 }
 
+// GetTimeEntriesForSubmissionAccountingHandler returns time entries for a specific submission (for accounting)
+func (h *Handler) GetTimeEntriesForSubmissionAccountingHandler(w http.ResponseWriter, r *http.Request) {
+	user, err := h.GetCurrentUser(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Check if the user is accounting
+	if user.Role != db.RoleEnumAccounting {
+		http.Error(w, "Forbidden: Only accounting can access this", http.StatusForbidden)
+		return
+	}
+
+	// Get submission_id from query params
+	submissionIDStr := r.URL.Query().Get("submission_id")
+	if submissionIDStr == "" {
+		http.Error(w, "Bad Request: submission_id is required", http.StatusBadRequest)
+		return
+	}
+
+	submissionID, err := uuid.Parse(submissionIDStr)
+	if err != nil {
+		http.Error(w, "Bad Request: Invalid submission_id", http.StatusBadRequest)
+		return
+	}
+
+	// Get time entries for this submission
+	entries, err := h.Q.GetTimeEntriesBySubmissionID(r.Context(), submissionID)
+	if err != nil {
+		log.Printf("Error fetching time entries for submission %s: %v", submissionID, err)
+		http.Error(w, "Failed to fetch time entries", http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("GetTimeEntriesForSubmissionAccountingHandler: Found %d entries for submission %s", len(entries), submissionID)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(entries)
+}
+
 // AccountingZeitenUebersichtHandler serves the Zeiten Übersicht page for accounting
 func (h *Handler) AccountingZeitenUebersichtHandler(w http.ResponseWriter, r *http.Request) {
 	// Ensure user is authenticated

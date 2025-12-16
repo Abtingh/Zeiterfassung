@@ -27,16 +27,16 @@ func (h *Handler) GetPendingTimeEntriesHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	// Get all pending submissions for this supervisor
-	log.Printf("GetPendingTimeEntriesHandler: Fetching pending submissions for supervisor ID=%d", user.ID)
-	submissions, err := h.Q.GetPendingSubmissionsForSupervisor(r.Context(), pgtype.Int8{Int64: user.ID, Valid: true})
+	// Get all submissions (not just 'gesendet') for this supervisor
+	log.Printf("GetPendingTimeEntriesHandler: Fetching all submissions for supervisor ID=%d", user.ID)
+	submissions, err := h.Q.GetAllSubmissionsForSupervisor(r.Context(), pgtype.Int8{Int64: user.ID, Valid: true})
 	if err != nil {
-		log.Printf("Error fetching pending submissions: %v", err)
-		http.Error(w, "Failed to fetch pending submissions", http.StatusInternalServerError)
+		log.Printf("Error fetching submissions: %v", err)
+		http.Error(w, "Failed to fetch submissions", http.StatusInternalServerError)
 		return
 	}
 
-	log.Printf("GetPendingTimeEntriesHandler: Found %d pending submissions", len(submissions))
+	log.Printf("GetPendingTimeEntriesHandler: Found %d submissions", len(submissions))
 
 	// Return the submissions as JSON
 	w.Header().Set("Content-Type", "application/json")

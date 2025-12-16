@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
     <link rel="stylesheet" href="../src/styles/BenutzerVerwalten.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
     <div id="header">
         <div id="logoContainer">
@@ -33,6 +35,12 @@
                     <h2>Benutzer Verwalten</h2>
                 </div>
                 <div id="inputGroup">
+                    <div class="inputfield full-width" id="userSelectHolder">
+                        <label for="userSelect">Benutzer auswählen</label>
+                        <select id="userSelect" name="userSelect" required>
+                            <option value="" selected disabled>Benutzer wählen...</option>
+                        </select>
+                    </div>
                     <div class="inputfield" id="firstnameHolder">
                         <label for="firstname">Vorname</label>
                         <input type="text" id="firstname" name="firstname" placeholder="Vorname" required>
@@ -41,50 +49,236 @@
                         <label for="lastname">Nachname</label>
                         <input type="text" id="lastname" name="lastname" placeholder="Nachname" required>
                     </div>
-                    <div class="inputfield" id="teamHolder">
-                        <label for="team">Team</label>
-                        <input type="text" id="team" name="team" placeholder="Team" required>
-                    </div>
-                    <div class="inputfield" id="passwordHolder">
-                        <label for="password">Passwort</label>
-                        <input type="password" id="password" name="password" placeholder="Passwort" required>
-                    </div>
                     <div class="inputfield" id="emailHolder">
                         <label for="email">E-Mail</label>
                         <input type="email" id="email" name="email" placeholder="E-Mail" required>
                     </div>
-                    <div class="inputfield" id="confirmPasswordHolder">
-                        <label for="confirmPassword">Passwort bestätigen</label>
-                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Passwort bestätigen" required>
-                    </div>
-                    <div class="inputfield" id="teamleader_EmailHolder">
-                        <label for="teamleader_Email">Vorgesetzter E-Mail</label>
-                        <input type="email" id="teamleader_Email" name="teamleader_Email" placeholder="Vorgesetzter E-Mail" required>
+                    <div class="inputfield" id="teamHolder">
+                        <label for="team">Team</label>
+                        <select id="team" name="team">
+                            <option value="" selected>Kein Team</option>
+                        </select>
                     </div>
                     <div class="inputfield" id="roleHolder">
                         <label for="role">Rolle</label>
                         <select id="role" name="role" required>
-                            <option value="role" selected disabled>Role</option>
+                            <option value="" selected disabled>Rolle wählen</option>
                             <option value="admin">Admin</option>
-                            <option value="user">Benutzer</option>
+                            <option value="supervisor">Supervisor</option>
+                            <option value="student">Student</option>
+                            <option value="accounting">Buchhalter</option>
                         </select>
+                    </div>
+                    <div class="inputfield" id="resetPasswordHolder">
+                        <label for="newPassword">Neues Passwort</label>
+                        <input type="text" id="newPassword" name="newPassword" placeholder="Leer = nicht ändern">
+                        <button type="button" id="generatePasswordBtn">Generieren</button>
                     </div>
                 </div>
                 <div id="buttonContainer">
-                    <button type="button" id="cancelButton">Deaktive!</button>
+                    <button type="button" id="cancelButton">Deaktivieren</button>
                     <button type="submit" id="submitButton">Speichern</button>
                 </div>
             </form>
         </div>
         <div id="navbar">
             <ul>
-                <li><img src="../assets/iconHome.svg" alt="Home"><a href="/home">Übersicht</a></li>
-                <li><img src="../assets/iconAddUser.svg" alt="Anlegen"><a href="#">Benutzer anlegen</a></li>
-                <li><img src="../assets/iconManageUser.svg" alt="Verwalten"><a href="#">Benutzer verwalten</a></li>
+                <li><img src="/assets/iconHome.svg" alt="Home"><a href="/home">Übersicht</a></li>
+                <li><img src="/assets/iconAddUser.svg" alt="Anlegen"><a href="/BenutzerAnlegen">Benutzer anlegen</a>
+                </li>
+                <li class="active"><img src="/assets/iconManageUser.svg" alt="Verwalten"><a
+                        href="/BenutzerVerwalten">Benutzer verwalten</a></li>
+                <li><img src="/assets/iconAddUser.svg" alt="Team"><a href="/TeamHinzufuegen">Team Hinzufügen</a></li>
+                <li><img src="/assets/iconManageUser.svg" alt="Team"><a href="/TeamVerwalten">Team Verwalten</a></li>
             </ul>
         </div>
     </div>
     <script src="/src/services/logout.js"></script>
     <script src="/src/services/profileDropdown.js"></script>
+    <script>
+        let allUsers = [];
+        let allTeams = [];
+
+        document.addEventListener('DOMContentLoaded', async function () {
+            // Load users and teams
+            await Promise.all([loadUsers(), loadTeams()]);
+
+            // Handle user selection
+            document.getElementById('userSelect').addEventListener('change', handleUserSelect);
+
+            // Handle form submission
+            document.getElementById('formContainer').addEventListener('submit', handleSubmit);
+
+            // Handle deactivate button
+            document.getElementById('cancelButton').addEventListener('click', handleDeactivate);
+
+            // Handle generate password button
+            document.getElementById('generatePasswordBtn').addEventListener('click', generatePassword);
+        });
+
+        function generatePassword() {
+            const length = 12;
+            const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+            let password = '';
+            for (let i = 0; i < length; i++) {
+                password += charset.charAt(Math.floor(Math.random() * charset.length));
+            }
+            document.getElementById('newPassword').value = password;
+        }
+
+        async function loadUsers() {
+            try {
+                const response = await fetch('/admin/users/list', {
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    console.error('Failed to load users');
+                    return;
+                }
+
+                allUsers = await response.json();
+                const userSelect = document.getElementById('userSelect');
+
+                allUsers.forEach(user => {
+                    const option = document.createElement('option');
+                    option.value = user.id;
+                    option.textContent = `${user.first_name} ${user.last_name} (${user.email})`;
+                    userSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading users:', error);
+            }
+        }
+
+        async function loadTeams() {
+            try {
+                const response = await fetch('/admin/teams/list', {
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    console.error('Failed to load teams');
+                    return;
+                }
+
+                allTeams = await response.json();
+                const teamSelect = document.getElementById('team');
+
+                allTeams.forEach(team => {
+                    const option = document.createElement('option');
+                    option.value = team.id;
+                    option.textContent = team.name;
+                    teamSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading teams:', error);
+            }
+        }
+
+        function handleUserSelect(e) {
+            const userId = parseInt(e.target.value);
+            const user = allUsers.find(u => u.id === userId);
+
+            if (user) {
+                document.getElementById('firstname').value = user.first_name || '';
+                document.getElementById('lastname').value = user.last_name || '';
+                document.getElementById('email').value = user.email || '';
+                document.getElementById('team').value = user.team_id || '';
+                document.getElementById('role').value = user.role || '';
+                document.getElementById('newPassword').value = '';
+            }
+        }
+
+        async function handleSubmit(e) {
+            e.preventDefault();
+
+            const userId = document.getElementById('userSelect').value;
+            if (!userId) {
+                alert('Bitte wählen Sie einen Benutzer aus!');
+                return;
+            }
+
+            const teamValue = document.getElementById('team').value;
+            const teamId = teamValue ? parseInt(teamValue) : null;
+            const newPassword = document.getElementById('newPassword').value;
+
+            const userData = {
+                id: parseInt(userId),
+                first_name: document.getElementById('firstname').value,
+                last_name: document.getElementById('lastname').value,
+                email: document.getElementById('email').value,
+                role: document.getElementById('role').value,
+                team_id: teamId
+            };
+
+            if (newPassword) {
+                userData.password = newPassword;
+            }
+
+            try {
+                const response = await fetch('/admin/users/update', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify(userData)
+                });
+
+                if (response.ok) {
+                    let message = 'Benutzer erfolgreich aktualisiert!';
+                    if (newPassword) {
+                        message += '\n\nNeues Passwort: ' + newPassword + '\n\nBitte notieren Sie dieses Passwort!';
+                    }
+                    alert(message);
+                    // Reload users to get updated data
+                    location.reload();
+                } else {
+                    const error = await response.json();
+                    alert('Fehler: ' + (error.error || 'Benutzer konnte nicht aktualisiert werden'));
+                }
+            } catch (error) {
+                console.error('Error updating user:', error);
+                alert('Fehler beim Aktualisieren des Benutzers');
+            }
+        }
+
+        async function handleDeactivate() {
+            const userId = document.getElementById('userSelect').value;
+            if (!userId) {
+                alert('Bitte wählen Sie einen Benutzer aus!');
+                return;
+            }
+
+            const user = allUsers.find(u => u.id === parseInt(userId));
+            if (!confirm(`Möchten Sie den Benutzer "${user.first_name} ${user.last_name}" wirklich deaktivieren?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/admin/users/deactivate', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ id: parseInt(userId) })
+                });
+
+                if (response.ok) {
+                    alert('Benutzer erfolgreich deaktiviert!');
+                    location.reload();
+                } else {
+                    const error = await response.json();
+                    alert('Fehler: ' + (error.error || 'Benutzer konnte nicht deaktiviert werden'));
+                }
+            } catch (error) {
+                console.error('Error deactivating user:', error);
+                alert('Fehler beim Deaktivieren des Benutzers');
+            }
+        }
+    </script>
 </body>
+
 </html>

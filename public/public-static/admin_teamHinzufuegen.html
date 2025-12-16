@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Team Hinzufügen</title>
+    <link rel="stylesheet" href="/src/styles/home.css">
+    <link rel="stylesheet" href="/src/styles/BenutzerVerwalten.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        #formContainer {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            margin: 20px auto;
+        }
+
+        #titleContainer h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .inputfield {
+            margin-bottom: 20px;
+        }
+
+        .inputfield label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .inputfield input,
+        .inputfield select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .inputfield select {
+            cursor: pointer;
+        }
+
+        #buttonContainer {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        #buttonContainer button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        #cancelButton {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+
+        #submitButton {
+            background-color: #1370AC;
+            color: white;
+        }
+
+        #submitButton:hover {
+            background-color: #0f5a8a;
+        }
+
+        .message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            display: block;
+        }
+
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="header">
+        <div id="logoContainer">
+            <h2>Zeiterfassung</h2>
+        </div>
+        <div id="iconProfile">
+            <a href="#">
+                <img src="/assets/iconProfile.svg" alt="User Icon">
+            </a>
+            <div id="profileDropDown" class="dropdown-menu hidden">
+                <ul>
+                    <li><a href="#" id="profileLink">Profil</a></li>
+                    <li><a href="/reset-passwort" id="resetPasswordLink">Passwort zurücksetzen</a></li>
+                    <li><a href="#" id="logoutLink">Ausloggen</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div id="main">
+        <div id="mainContent">
+            <form id="formContainer">
+                <div id="titleContainer">
+                    <h2>Team Hinzufügen</h2>
+                </div>
+                <div id="messageBox" class="message"></div>
+                <div id="inputGroup">
+                    <div class="inputfield" id="teamNameHolder">
+                        <label for="teamName">Team Name</label>
+                        <input type="text" id="teamName" name="teamName" placeholder="Team Name eingeben" required>
+                    </div>
+                    <div class="inputfield" id="supervisorHolder">
+                        <label for="supervisor">Vorgesetzter (Supervisor)</label>
+                        <select id="supervisor" name="supervisor">
+                            <option value="" selected>Kein Supervisor</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="buttonContainer">
+                    <button type="button" id="cancelButton">Reset</button>
+                    <button type="submit" id="submitButton">Team Anlegen</button>
+                </div>
+            </form>
+        </div>
+        <div id="navbar">
+            <ul>
+                <li><img src="/assets/iconHome.svg" alt="Home"><a href="/home">Übersicht</a></li>
+                <li><img src="/assets/iconAddUser.svg" alt="Anlegen"><a href="/BenutzerAnlegen">Benutzer anlegen</a>
+                </li>
+                <li><img src="/assets/iconManageUser.svg" alt="Verwalten"><a href="/BenutzerVerwalten">Benutzer
+                        verwalten</a></li>
+                <li class="active"><img src="/assets/iconAddUser.svg" alt="Team"><a href="/TeamHinzufuegen">Team
+                        Hinzufügen</a></li>
+                <li><img src="/assets/iconManageUser.svg" alt="Team"><a href="/TeamVerwalten">Team Verwalten</a></li>
+            </ul>
+        </div>
+    </div>
+    <script src="/src/services/logout.js"></script>
+    <script src="/src/services/profileDropdown.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadSupervisors();
+            setupEventListeners();
+        });
+
+        async function loadSupervisors() {
+            try {
+                const response = await fetch('/admin/supervisors/list', {
+                    credentials: 'include'
+                });
+                if (!response.ok) throw new Error('Failed to load supervisors');
+
+                const supervisors = await response.json();
+                const select = document.getElementById('supervisor');
+
+                supervisors.forEach(sup => {
+                    const option = document.createElement('option');
+                    option.value = sup.id;
+                    const firstName = sup.first_name?.String || sup.first_name || '';
+                    const lastName = sup.last_name?.String || sup.last_name || '';
+                    option.textContent = `${firstName} ${lastName} (${sup.email})`.trim();
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading supervisors:', error);
+            }
+        }
+
+        function setupEventListeners() {
+            document.getElementById('formContainer').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await createTeam();
+            });
+
+            document.getElementById('cancelButton').addEventListener('click', () => {
+                document.getElementById('teamName').value = '';
+                document.getElementById('supervisor').value = '';
+                hideMessage();
+            });
+        }
+
+        async function createTeam() {
+            const teamName = document.getElementById('teamName').value.trim();
+            const supervisorId = document.getElementById('supervisor').value;
+
+            if (!teamName) {
+                showMessage('Bitte Team Name eingeben.', 'error');
+                return;
+            }
+
+            try {
+                const body = {
+                    name: teamName,
+                    supervisor_id: supervisorId ? parseInt(supervisorId) : null
+                };
+
+                const response = await fetch('/admin/teams/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify(body)
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to create team');
+                }
+
+                showMessage('Team erfolgreich erstellt!', 'success');
+                document.getElementById('teamName').value = '';
+                document.getElementById('supervisor').value = '';
+            } catch (error) {
+                showMessage(error.message, 'error');
+            }
+        }
+
+        function showMessage(text, type) {
+            const msgBox = document.getElementById('messageBox');
+            msgBox.textContent = text;
+            msgBox.className = `message ${type}`;
+        }
+
+        function hideMessage() {
+            const msgBox = document.getElementById('messageBox');
+            msgBox.className = 'message';
+        }
+    </script>
+</body>
+
+</html>

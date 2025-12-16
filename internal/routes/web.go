@@ -25,9 +25,23 @@ func Register(mux *http.ServeMux, handler *handlers.Handler) {
 	// Student pages
 	mux.HandleFunc("/ZeitEintragen", middleware.NoCache(handler.StudentZeitEintragenHandler))
 
+	// Admin API endpoints
+	mux.HandleFunc("/admin/users/create", middleware.NoCache(handler.CreateUserHandler))                      // POST
+	mux.HandleFunc("/admin/users/list", middleware.NoCache(handler.ListUsersHandler))                         // GET
+	mux.HandleFunc("/admin/users/update", middleware.NoCache(handler.UpdateUserHandler))                      // PUT
+	mux.HandleFunc("/admin/users/deactivate", middleware.NoCache(handler.DeactivateUserHandler))              // PUT
+	mux.HandleFunc("/admin/teams/create", middleware.NoCache(handler.CreateTeamHandler))                      // POST
+	mux.HandleFunc("/admin/teams/list", middleware.NoCache(handler.ListTeamsHandler))                         // GET
+	mux.HandleFunc("/admin/teams/members", middleware.NoCache(handler.GetTeamMembersHandler))                 // GET
+	mux.HandleFunc("/admin/teams/update-supervisor", middleware.NoCache(handler.UpdateTeamSupervisorHandler)) // POST
+	mux.HandleFunc("/admin/teams/delete", middleware.NoCache(handler.DeleteTeamHandler))                      // DELETE
+	mux.HandleFunc("/admin/supervisors/list", middleware.NoCache(handler.GetAllSupervisorsHandler))           // GET
+
 	// Admin pages
-	mux.HandleFunc("/admin/users/create", middleware.NoCache(handler.CreateUserHandler)) // POST
-	mux.HandleFunc("/admin/users/list", middleware.NoCache(handler.ListUsersHandler))    // GET
+	mux.HandleFunc("/TeamHinzufuegen", middleware.NoCache(handler.AdminTeamHinzufuegenHandler))
+	mux.HandleFunc("/TeamVerwalten", middleware.NoCache(handler.AdminTeamVerwaltenHandler))
+	mux.HandleFunc("/BenutzerAnlegen", middleware.NoCache(handler.AdminBenutzerAnlegenHandler))
+	mux.HandleFunc("/BenutzerVerwalten", middleware.NoCache(handler.AdminBenutzerVerwaltenHandler))
 
 	// Time Entry API endpoints
 	mux.HandleFunc("/api/time-entries/submit", middleware.NoCache(handler.SubmitWeeklyTimeEntriesHandler))
@@ -49,6 +63,7 @@ func Register(mux *http.ServeMux, handler *handlers.Handler) {
 	mux.HandleFunc("/api/accounting/students", middleware.NoCache(handler.GetAllStudentsHandler))
 	mux.HandleFunc("/api/accounting/student-submissions", middleware.NoCache(handler.GetApprovedSubmissionsForStudentHandler))
 	mux.HandleFunc("/api/accounting/all-student-submissions", middleware.NoCache(handler.GetAllSubmissionsForStudentHandler))
+	mux.HandleFunc("/api/accounting/submission-entries", middleware.NoCache(handler.GetTimeEntriesForSubmissionAccountingHandler))
 	mux.HandleFunc("/api/accounting/mark-processed", middleware.NoCache(handler.MarkSubmissionAsProcessedHandler))
 	mux.HandleFunc("/api/accounting/processed-entries", middleware.NoCache(handler.GetProcessedSubmissionsHandler))
 

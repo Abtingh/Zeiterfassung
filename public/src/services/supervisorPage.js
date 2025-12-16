@@ -19,7 +19,7 @@ async function initializePage() {
     try {
         console.log('Initializing supervisor page...');
         
-        // Load pending submissions
+        // Load pending submissions (excludes 'offen' status)
         const submissions = await supervisorService.getPendingSubmissions();
         
         console.log('Received submissions:', submissions);
@@ -34,7 +34,49 @@ async function initializePage() {
         // Populate student dropdown
         populateStudentDropdown();
         
-        // Select first student by default
+        // Check for URL parameters (from home page navigation)
+        const urlParams = new URLSearchParams(window.location.search);
+        const studentIdParam = urlParams.get('student_id');
+        const yearParam = urlParams.get('year');
+        const monthParam = urlParams.get('month');
+        const weekParam = urlParams.get('week');
+        
+        console.log('URL params:', { studentIdParam, yearParam, monthParam, weekParam });
+        
+        if (studentIdParam && yearParam && monthParam && weekParam) {
+            // Calculate global week number from month and week params
+            const month0 = parseInt(monthParam) - 1; // Convert to 0-indexed
+            const weekIndex = parseInt(weekParam);
+            const globalWeekNumber = (month0 * 5) + weekIndex;
+            
+            console.log('Looking for student:', studentIdParam, 'week:', globalWeekNumber, 'year:', yearParam);
+            
+            // Set student dropdown
+            document.getElementById('studentSelect').value = studentIdParam;
+            
+            // Find matching submission
+            const targetSubmission = submissions.find(s => 
+                s.user_id === parseInt(studentIdParam) && 
+                s.week_number === globalWeekNumber && 
+                s.year === parseInt(yearParam)
+            );
+            
+            if (targetSubmission) {
+                console.log('Found target submission:', targetSubmission);
+                currentSubmission = targetSubmission;
+                currentWeek = targetSubmission.week_number;
+                currentYear = targetSubmission.year;
+                
+                updateWeekDisplay();
+                updateStatusDisplay();
+                await loadTimeEntriesForSubmission();
+                return;
+            } else {
+                console.log('No matching submission found for params, falling back to first submission');
+            }
+        }
+        
+        // Default: Select first student
         const students = supervisorService.getUniqueStudents();
         console.log('Unique students:', students);
         
@@ -78,10 +120,55 @@ async function onStudentChange(userId) {
         return;
     }
     
-    // Get the most recent submission (or first one)
-    currentSubmission = submissions[0];
+    // Sort submissions by year and week (ascending) to match navigation order
+    const sortedSubmissions = [...submissions].sort((a, b) => {
+        if (a.year !== b.year) return a.year - b.year;
+        return a.week_number - b.week_number;
+    });
+    
+    // Calculate current week's global week number
+    const now = new Date();
+    const currentMonth0 = now.getMonth();
+    const currentYearNow = now.getFullYear();
+    
+    // Find which week of the month we're in using fridaysInMonth
+    let currentGlobalWeek = null;
+    if (typeof fridaysInMonth === 'function') {
+        const fridays = fridaysInMonth(currentYearNow, currentMonth0);
+        for (let i = 0; i < fridays.length; i++) {
+            const friday = fridays[i];
+            const monday = new Date(friday);
+            monday.setDate(friday.getDate() - 4);
+            const sunday = new Date(friday);
+            sunday.setDate(friday.getDate() + 2);
+            
+            if (now >= monday && now <= sunday) {
+                currentGlobalWeek = (currentMonth0 * 5) + (i + 1);
+                break;
+            }
+        }
+    }
+    
+    console.log('Current global week:', currentGlobalWeek);
+    
+    // Try to find submission for current week
+    let selectedSubmission = null;
+    if (currentGlobalWeek) {
+        selectedSubmission = sortedSubmissions.find(s => 
+            s.week_number === currentGlobalWeek && s.year === currentYearNow
+        );
+    }
+    
+    // If no current week submission, use the most recent one
+    if (!selectedSubmission) {
+        selectedSubmission = sortedSubmissions[sortedSubmissions.length - 1];
+    }
+    
+    currentSubmission = selectedSubmission;
     currentWeek = currentSubmission.week_number;
     currentYear = currentSubmission.year;
+    
+    console.log('Selected submission:', currentSubmission.id, 'Week:', currentWeek, 'Year:', currentYear);
     
     // Update UI
     updateWeekDisplay();
@@ -99,10 +186,15 @@ function updateWeekDisplay() {
     const dateHolder = document.getElementById('date');
     
     if (currentWeek && currentYear) {
-        weekHolder.textContent = `${currentWeek}.Woche`;
+        // Convert global week number back to display week
+        // Global week = (month * 5) + weekInMonth
+        // weekInMonth ranges from 1-5
+        const weekInMonth = ((currentWeek - 1) % 5) + 1;
         
-        // Calculate week date range
-        const weekDates = getWeekDateRange(currentWeek, currentYear);
+        weekHolder.textContent = `${weekInMonth}.Woche`;
+        
+        // Calculate week date range based on actual dates
+        const weekDates = getWeekDateRangeFromGlobal(currentWeek, currentYear);
         dateHolder.textContent = `${weekDates.start} - ${weekDates.end}`;
     }
 }
@@ -112,18 +204,41 @@ function updateWeekDisplay() {
  */
 function updateStatusDisplay() {
     const statusText = document.getElementById('statusText');
+    const editBtn = document.getElementById('editBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    
     if (currentSubmission) {
         const statusMap = {
+            'offen': 'Offen',
             'entwurf': 'Entwurf',
             'gesendet': 'Gesendet',
             'bestaetigt': 'Bestätigt',
-            'korrektur': 'Korrektur erforderlich'
+            'korrektur': 'Korrektur',
+            'erledigt': 'Erledigt'
         };
         statusText.textContent = statusMap[currentSubmission.status] || currentSubmission.status;
         
         // Add color based on status
         statusText.className = '';
         statusText.classList.add(`status-${currentSubmission.status}`);
+        
+        // Enable/disable buttons based on status
+        // Only 'gesendet' status should have both buttons enabled
+        if (currentSubmission.status === 'gesendet') {
+            editBtn.disabled = false;
+            submitBtn.disabled = false;
+            editBtn.style.opacity = '1';
+            submitBtn.style.opacity = '1';
+            editBtn.style.cursor = 'pointer';
+            submitBtn.style.cursor = 'pointer';
+        } else {
+            editBtn.disabled = true;
+            submitBtn.disabled = true;
+            editBtn.style.opacity = '0.5';
+            submitBtn.style.opacity = '0.5';
+            editBtn.style.cursor = 'not-allowed';
+            submitBtn.style.cursor = 'not-allowed';
+        }
     }
 }
 
@@ -151,6 +266,39 @@ async function loadTimeEntriesForSubmission() {
         }
     } catch (error) {
         console.error('Error loading time entries:', error);
+    }
+}
+
+/**
+ * Update table dates based on current week
+ */
+function updateTableDates() {
+    if (!currentWeek || !currentYear) return;
+    
+    // Decode global week to get month and week in month
+    const month0 = Math.floor((currentWeek - 1) / 5);
+    const weekInMonth = ((currentWeek - 1) % 5) + 1;
+    
+    // Get the Friday for this week using fridaysInMonth
+    if (typeof fridaysInMonth === 'function') {
+        const fridays = fridaysInMonth(currentYear, month0);
+        if (fridays.length >= weekInMonth) {
+            const friday = fridays[weekInMonth - 1];
+            const monday = new Date(friday);
+            monday.setDate(friday.getDate() - 4);
+            
+            // Update each day's date in the table
+            const dayClasses = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh'];
+            dayClasses.forEach((cls, i) => {
+                const dateElement = document.querySelector(`.${cls}.day`);
+                if (dateElement) {
+                    const dayDate = new Date(monday);
+                    dayDate.setDate(monday.getDate() + i);
+                    const formatted = `${dayDate.getDate().toString().padStart(2, '0')}.${(dayDate.getMonth() + 1).toString().padStart(2, '0')}`;
+                    dateElement.textContent = formatted;
+                }
+            });
+        }
     }
 }
 
@@ -221,6 +369,9 @@ function populateTableWithEntries(entries) {
     
     // Clear table first
     clearTable();
+    
+    // Update table dates based on current week
+    updateTableDates();
     
     // Populate with data
     let totalHours = 0;
@@ -401,21 +552,54 @@ function setupEventListeners() {
  * @param {number} direction - -1 for previous, 1 for next
  */
 function navigateWeek(direction) {
-    if (!currentSubmission) return;
+    if (!currentSubmission) {
+        console.log('No current submission');
+        return;
+    }
     
     const userId = currentSubmission.user_id;
     const submissions = supervisorService.getSubmissionsForStudent(userId);
     
-    // Find submission for target week
-    const targetWeek = currentWeek + direction;
-    const targetSubmission = submissions.find(s => s.week_number === targetWeek && s.year === currentYear);
+    console.log('All submissions for user:', submissions.length);
     
-    if (targetSubmission) {
+    // Sort submissions by year and week number (ascending)
+    const sortedSubmissions = [...submissions].sort((a, b) => {
+        if (a.year !== b.year) return a.year - b.year;
+        return a.week_number - b.week_number;
+    });
+    
+    console.log('Sorted submissions:', sortedSubmissions.map(s => ({ week: s.week_number, year: s.year, status: s.status, id: s.id.substring(0,8) })));
+    console.log('Current submission id:', currentSubmission.id.substring(0,8), 'week:', currentWeek);
+    
+    // Find current index by matching submission ID (most reliable)
+    const currentIndex = sortedSubmissions.findIndex(s => s.id === currentSubmission.id);
+    
+    console.log('Current index:', currentIndex, 'Direction:', direction);
+    
+    if (currentIndex === -1) {
+        console.error('Current submission not found in sorted list!');
+        return;
+    }
+    
+    // Calculate target index
+    const targetIndex = currentIndex + direction;
+    
+    console.log('Target index:', targetIndex, 'Max:', sortedSubmissions.length - 1);
+    
+    if (targetIndex >= 0 && targetIndex < sortedSubmissions.length) {
+        const targetSubmission = sortedSubmissions[targetIndex];
+        console.log('Navigating to:', targetSubmission.id.substring(0,8), 'week:', targetSubmission.week_number, 'status:', targetSubmission.status);
+        
         currentSubmission = targetSubmission;
         currentWeek = targetSubmission.week_number;
+        currentYear = targetSubmission.year;
+        
         updateWeekDisplay();
         updateStatusDisplay();
         loadTimeEntriesForSubmission();
+    } else {
+        console.log('Cannot navigate - at boundary. targetIndex:', targetIndex);
+        // Do NOT change anything if we can't navigate
     }
 }
 
@@ -433,6 +617,44 @@ function calculateHours(start, end) {
     const endMinutes = endH * 60 + endM;
     
     return (endMinutes - startMinutes) / 60;
+}
+
+/**
+ * Get week date range from global week number
+ * Global week = (month * 5) + weekInMonth
+ * Uses the same business rules as fridaysInMonth()
+ * 
+ * @param {number} globalWeek - The global week number
+ * @param {number} year - Year
+ * @returns {Object} Start and end dates formatted
+ */
+function getWeekDateRangeFromGlobal(globalWeek, year) {
+    // Decode global week: globalWeek = (month * 5) + weekInMonth
+    // So: month = floor((globalWeek - 1) / 5), weekInMonth = ((globalWeek - 1) % 5) + 1
+    const month0 = Math.floor((globalWeek - 1) / 5);
+    const weekInMonth = ((globalWeek - 1) % 5) + 1;
+    
+    // Use the same fridaysInMonth logic to find the exact Friday
+    if (typeof fridaysInMonth === 'function') {
+        const fridays = fridaysInMonth(year, month0);
+        if (fridays.length >= weekInMonth) {
+            const friday = fridays[weekInMonth - 1];
+            const monday = new Date(friday);
+            monday.setDate(friday.getDate() - 4);
+            const sunday = new Date(friday);
+            sunday.setDate(friday.getDate() + 2);
+            
+            const formatDate = (d) => `${d.getDate().toString().padStart(2, '0')}.${(d.getMonth() + 1).toString().padStart(2, '0')}`;
+            
+            return {
+                start: formatDate(monday),
+                end: formatDate(sunday)
+            };
+        }
+    }
+    
+    // Fallback to simple calculation
+    return getWeekDateRange(globalWeek, year);
 }
 
 /**

@@ -162,16 +162,11 @@ func (q *Queries) DeleteTimeEntriesBySubmission(ctx context.Context, submissionI
 }
 
 const getAllStudents = `-- name: GetAllStudents :many
-SELECT 
-    u.id, 
-    u.first_name, 
-    u.last_name, 
-    u.email,
-    u.team_id,
-    t.name as team_name
+SELECT u.id, u.first_name, u.last_name, u.email, u.team_id, t.name as team_name
 FROM users u
-LEFT JOIN teams t ON u.team_id = t.id
-WHERE u.role = 'student'
+    LEFT JOIN teams t ON u.team_id = t.id
+WHERE
+    u.role = 'student'
 ORDER BY u.last_name, u.first_name
 `
 
@@ -212,25 +207,81 @@ func (q *Queries) GetAllStudents(ctx context.Context) ([]GetAllStudentsRow, erro
 	return items, nil
 }
 
+const getAllSubmissionsForSupervisor = `-- name: GetAllSubmissionsForSupervisor :many
+SELECT ws.id, ws.user_id, ws.week_number, ws.year, ws.status, ws.submitted_at, u.first_name, u.last_name, u.email
+FROM
+    weekly_submissions ws
+    JOIN users u ON ws.user_id = u.id
+    JOIN teams t ON u.team_id = t.id
+WHERE
+    t.supervisor_id = $1
+ORDER BY ws.year DESC, ws.week_number DESC, u.last_name
+`
+
+type GetAllSubmissionsForSupervisorRow struct {
+	ID          uuid.UUID            `json:"id"`
+	UserID      int64                `json:"user_id"`
+	WeekNumber  int32                `json:"week_number"`
+	Year        int32                `json:"year"`
+	Status      SubmissionStatusEnum `json:"status"`
+	SubmittedAt pgtype.Timestamptz   `json:"submitted_at"`
+	FirstName   pgtype.Text          `json:"first_name"`
+	LastName    pgtype.Text          `json:"last_name"`
+	Email       string               `json:"email"`
+}
+
+// Get ALL weekly submissions for students under this supervisor
+func (q *Queries) GetAllSubmissionsForSupervisor(ctx context.Context, supervisorID pgtype.Int8) ([]GetAllSubmissionsForSupervisorRow, error) {
+	rows, err := q.db.Query(ctx, getAllSubmissionsForSupervisor, supervisorID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetAllSubmissionsForSupervisorRow{}
+	for rows.Next() {
+		var i GetAllSubmissionsForSupervisorRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.WeekNumber,
+			&i.Year,
+			&i.Status,
+			&i.SubmittedAt,
+			&i.FirstName,
+			&i.LastName,
+			&i.Email,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getApprovedSubmissions = `-- name: GetApprovedSubmissions :many
 
-SELECT 
-    ws.id, 
-    ws.user_id, 
-    ws.week_number, 
-    ws.year, 
-    ws.status, 
-    ws.submitted_at, 
+SELECT
+    ws.id,
+    ws.user_id,
+    ws.week_number,
+    ws.year,
+    ws.status,
+    ws.submitted_at,
     ws.approved_at,
     ws.processed_by,
-    u.first_name, 
-    u.last_name, 
+    u.first_name,
+    u.last_name,
     u.email,
     t.name as team_name
-FROM weekly_submissions ws
-JOIN users u ON ws.user_id = u.id
-LEFT JOIN teams t ON u.team_id = t.id
-WHERE ws.status = 'bestaetigt'
+FROM
+    weekly_submissions ws
+    JOIN users u ON ws.user_id = u.id
+    LEFT JOIN teams t ON u.team_id = t.id
+WHERE
+    ws.status = 'bestaetigt'
 ORDER BY ws.year DESC, ws.week_number DESC, u.last_name
 `
 
@@ -287,23 +338,26 @@ func (q *Queries) GetApprovedSubmissions(ctx context.Context) ([]GetApprovedSubm
 }
 
 const getApprovedSubmissionsForStudent = `-- name: GetApprovedSubmissionsForStudent :many
-SELECT 
-    ws.id, 
-    ws.user_id, 
-    ws.week_number, 
-    ws.year, 
-    ws.status, 
-    ws.submitted_at, 
+SELECT
+    ws.id,
+    ws.user_id,
+    ws.week_number,
+    ws.year,
+    ws.status,
+    ws.submitted_at,
     ws.approved_at,
     ws.processed_by,
-    u.first_name, 
-    u.last_name, 
+    u.first_name,
+    u.last_name,
     u.email,
     t.name as team_name
-FROM weekly_submissions ws
-JOIN users u ON ws.user_id = u.id
-LEFT JOIN teams t ON u.team_id = t.id
-WHERE ws.user_id = $1 AND ws.status = 'bestaetigt'
+FROM
+    weekly_submissions ws
+    JOIN users u ON ws.user_id = u.id
+    LEFT JOIN teams t ON u.team_id = t.id
+WHERE
+    ws.user_id = $1
+    AND ws.status = 'bestaetigt'
 ORDER BY ws.year DESC, ws.week_number DESC
 `
 
@@ -412,24 +466,26 @@ func (q *Queries) GetPendingSubmissionsForSupervisor(ctx context.Context, superv
 }
 
 const getProcessedSubmissions = `-- name: GetProcessedSubmissions :many
-SELECT 
-    ws.id, 
-    ws.user_id, 
-    ws.week_number, 
-    ws.year, 
-    ws.status, 
-    ws.submitted_at, 
+SELECT
+    ws.id,
+    ws.user_id,
+    ws.week_number,
+    ws.year,
+    ws.status,
+    ws.submitted_at,
     ws.approved_at,
     ws.processed_by,
     ws.processed_at,
-    u.first_name, 
-    u.last_name, 
+    u.first_name,
+    u.last_name,
     u.email,
     t.name as team_name
-FROM weekly_submissions ws
-JOIN users u ON ws.user_id = u.id
-LEFT JOIN teams t ON u.team_id = t.id
-WHERE ws.status = 'erledigt'
+FROM
+    weekly_submissions ws
+    JOIN users u ON ws.user_id = u.id
+    LEFT JOIN teams t ON u.team_id = t.id
+WHERE
+    ws.status = 'erledigt'
 ORDER BY ws.processed_at DESC
 `
 
@@ -585,18 +641,10 @@ func (q *Queries) GetStudentsForSupervisor(ctx context.Context, supervisorID pgt
 }
 
 const getSubmissionsForStudent = `-- name: GetSubmissionsForStudent :many
-SELECT 
-    ws.id, 
-    ws.user_id, 
-    ws.week_number, 
-    ws.year, 
-    ws.status, 
-    ws.submitted_at, 
-    ws.approved_at,
-    ws.processed_by,
-    ws.processed_at
+SELECT ws.id, ws.user_id, ws.week_number, ws.year, ws.status, ws.submitted_at, ws.approved_at, ws.processed_by, ws.processed_at
 FROM weekly_submissions ws
-WHERE ws.user_id = $1
+WHERE
+    ws.user_id = $1
 ORDER BY ws.year DESC, ws.week_number DESC
 `
 
