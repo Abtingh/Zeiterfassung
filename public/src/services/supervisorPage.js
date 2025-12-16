@@ -17,10 +17,15 @@ document.addEventListener('DOMContentLoaded', async () => {
  */
 async function initializePage() {
     try {
+        console.log('Initializing supervisor page...');
+        
         // Load pending submissions
         const submissions = await supervisorService.getPendingSubmissions();
         
-        if (submissions.length === 0) {
+        console.log('Received submissions:', submissions);
+        console.log('Number of submissions:', submissions ? submissions.length : 'null');
+        
+        if (!submissions || submissions.length === 0) {
             showMessage('Keine ausstehenden Einträge vorhanden.', 'info');
             disableControls();
             return;
@@ -31,6 +36,8 @@ async function initializePage() {
         
         // Select first student by default
         const students = supervisorService.getUniqueStudents();
+        console.log('Unique students:', students);
+        
         if (students.length > 0) {
             document.getElementById('studentSelect').value = students[0].id;
             await onStudentChange(students[0].id);
@@ -124,15 +131,23 @@ function updateStatusDisplay() {
  * Load time entries for the current submission
  */
 async function loadTimeEntriesForSubmission() {
-    if (!currentSubmission) return;
+    if (!currentSubmission) {
+        console.log('No currentSubmission set');
+        return;
+    }
     
     try {
-        // Use existing timeEntryService if available to load entries
-        if (typeof timeEntryService !== 'undefined') {
-            const data = await timeEntryService.loadWeek(currentWeek, currentYear);
-            if (data && data.entries) {
-                populateTableWithEntries(data.entries);
-            }
+        console.log('Loading time entries for submission:', currentSubmission.id);
+        
+        // Use supervisorService to get time entries for this specific submission
+        const entries = await supervisorService.getTimeEntriesForSubmission(currentSubmission.id);
+        console.log('Received entries:', entries);
+        
+        if (entries && entries.length > 0) {
+            populateTableWithEntries(entries);
+        } else {
+            console.log('No entries found for this submission');
+            clearTable();
         }
     } catch (error) {
         console.error('Error loading time entries:', error);
@@ -140,13 +155,10 @@ async function loadTimeEntriesForSubmission() {
 }
 
 /**
- * Populate table with time entry data
- * @param {Array} entries - Array of time entries
+ * Clear the time entry table
  */
-function populateTableWithEntries(entries) {
+function clearTable() {
     const rows = document.querySelectorAll('#timeTable tbody tr:not(.total-row)');
-    
-    // Clear table first
     rows.forEach(row => {
         const timeInputs = row.querySelectorAll('.time-input');
         const pauseInput = row.querySelector('.pause-input');
@@ -161,32 +173,138 @@ function populateTableWithEntries(entries) {
         if (calcHours) calcHours.textContent = '-';
         if (workHours) workHours.textContent = '-';
     });
+}
+
+/**
+ * Format time from microseconds (pgtype.Time format)
+ */
+function formatTimeFromMicroseconds(timeValue) {
+    if (!timeValue) return '';
+    
+    // Handle pgtype.Time format
+    if (typeof timeValue === 'object' && timeValue.Microseconds !== undefined) {
+        const microseconds = timeValue.Microseconds;
+        const hours = Math.floor(microseconds / 3600000000);
+        const minutes = Math.floor((microseconds % 3600000000) / 60000000);
+        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+    }
+    
+    // If it's already a string
+    if (typeof timeValue === 'string') {
+        return timeValue.substring(0, 5);
+    }
+    
+    return '';
+}
+
+/**
+ * Calculate hours difference between two times
+ */
+function calculateHoursDiff(startTime, endTime) {
+    if (!startTime || !endTime) return 0;
+    
+    const [startH, startM] = startTime.split(':').map(Number);
+    const [endH, endM] = endTime.split(':').map(Number);
+    
+    const startMinutes = startH * 60 + startM;
+    const endMinutes = endH * 60 + endM;
+    
+    return (endMinutes - startMinutes) / 60;
+}
+
+/**
+ * Populate table with time entry data
+ * @param {Array} entries - Array of time entries
+ */
+function populateTableWithEntries(entries) {
+    const rows = document.querySelectorAll('#timeTable tbody tr:not(.total-row)');
+    
+    // Clear table first
+    clearTable();
     
     // Populate with data
     let totalHours = 0;
-    entries.forEach((entry, index) => {
-        if (index < rows.length) {
-            const row = rows[index];
-            const timeInputs = row.querySelectorAll('.time-input');
-            const pauseInput = row.querySelector('.pause-input');
-            const notesInput = row.querySelector('.notes-input');
-            const calcHours = row.querySelector('.calculated-hours');
-            const workHours = row.querySelector('.work-hours');
-            
-            if (timeInputs[0] && entry.start_time) timeInputs[0].value = entry.start_time;
-            if (timeInputs[1] && entry.end_time) timeInputs[1].value = entry.end_time;
-            if (pauseInput && entry.break_min !== undefined) pauseInput.value = entry.break_min;
-            if (notesInput && entry.note) notesInput.value = entry.note;
-            if (workHours && entry.duration_h !== undefined) {
-                workHours.textContent = entry.duration_h;
-                totalHours += entry.duration_h;
+    console.log('Populating table with entries:', entries);
+    console.log('Number of table rows:', rows.length);
+    
+    // Create a map of day-of-week to entry
+    // We need to match entry_date to the correct row (Mo=0, Di=1, etc.)
+    const dayLabels = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+    
+    entries.forEach((entry) => {
+        console.log('Processing entry:', entry);
+        
+        // Get the day of week from entry_date
+        let dayIndex = -1;
+        if (entry.entry_date) {
+            // Handle pgtype.Date format
+            let dateStr = entry.entry_date;
+            if (typeof entry.entry_date === 'object' && entry.entry_date.Time) {
+                dateStr = entry.entry_date.Time;
             }
             
-            // Calculate hours if we have start and end time
-            if (entry.start_time && entry.end_time) {
-                const hours = calculateHours(entry.start_time, entry.end_time);
-                if (calcHours) calcHours.textContent = hours.toFixed(2);
+            const entryDate = new Date(dateStr);
+            // getDay() returns 0 for Sunday, 1 for Monday, etc.
+            // We need: Monday=0, Tuesday=1, ..., Sunday=6
+            dayIndex = (entryDate.getDay() + 6) % 7;
+            console.log('Entry date:', dateStr, 'Day index:', dayIndex);
+        }
+        
+        if (dayIndex < 0 || dayIndex >= rows.length) {
+            console.log('Invalid day index:', dayIndex);
+            return;
+        }
+        
+        const row = rows[dayIndex];
+        const timeInputs = row.querySelectorAll('.time-input');
+        const pauseInput = row.querySelector('.pause-input');
+        const notesInput = row.querySelector('.notes-input');
+        const calcHours = row.querySelector('.calculated-hours');
+        const workHours = row.querySelector('.work-hours');
+        
+        // Format time values
+        if (timeInputs[0] && entry.start_time) {
+            const startTime = formatTimeFromMicroseconds(entry.start_time);
+            console.log('Setting start time:', startTime, 'for row', dayIndex);
+            timeInputs[0].value = startTime;
+        }
+        if (timeInputs[1] && entry.end_time) {
+            const endTime = formatTimeFromMicroseconds(entry.end_time);
+            console.log('Setting end time:', endTime, 'for row', dayIndex);
+            timeInputs[1].value = endTime;
+        }
+        
+        if (pauseInput) {
+            const breakMin = entry.break_min?.Int32 || entry.break_min || 0;
+            pauseInput.value = breakMin;
+        }
+        
+        if (notesInput && entry.note) {
+            const noteText = entry.note?.String || entry.note || '';
+            notesInput.value = noteText;
+        }
+        
+        // Duration
+        let duration = 0;
+        if (entry.duration_h) {
+            if (typeof entry.duration_h === 'object' && entry.duration_h.String) {
+                duration = parseFloat(entry.duration_h.String) || 0;
+            } else {
+                duration = parseFloat(entry.duration_h) || 0;
             }
+        }
+        
+        if (workHours) {
+            workHours.textContent = duration.toFixed(2);
+            totalHours += duration;
+        }
+        
+        // Calculate hours if we have start and end time
+        if (entry.start_time && entry.end_time && calcHours) {
+            const startTime = formatTimeFromMicroseconds(entry.start_time);
+            const endTime = formatTimeFromMicroseconds(entry.end_time);
+            const hours = calculateHoursDiff(startTime, endTime);
+            calcHours.textContent = hours.toFixed(2);
         }
     });
     

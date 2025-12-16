@@ -399,15 +399,32 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const fromTime   = fromInput.value;  // e.g., "08:00"
     const toTime     = toInput.value;    // e.g., "17:00"
-    const pauseMinutes = parseFloat(pauseInput.value) || 0; // e.g., 30 (minutes)
+    let pauseMinutes = parseFloat(pauseInput.value) || 0; // e.g., 30 (minutes)
 
     // If both start and end times are provided, calculate hours
     if (fromTime && toTime) {
       const totalHours   = calculateTimeDifference(fromTime, toTime); // e.g., 9.0 hours
+      
+      // Auto-set minimum pause based on total hours worked (German labor law)
+      // > 9 hours: minimum 45 min pause
+      // > 6 hours: minimum 30 min pause
+      let minPause = 0;
+      if (totalHours > 9) {
+        minPause = 45;
+      } else if (totalHours > 6) {
+        minPause = 30;
+      }
+      
+      // If current pause is less than minimum, auto-set to minimum
+      if (pauseMinutes < minPause) {
+        pauseMinutes = minPause;
+        pauseInput.value = minPause;
+      }
+      
       const pauseHours   = pauseMinutes / 60; // Convert minutes to hours (e.g., 30 min = 0.5 hours)
       const workingHours = Math.max(0, totalHours - pauseHours);      // e.g., 8.5 hours (9 - 0.5)
       
-      console.log('Calculated - Total:', totalHours, 'Pause Hours:', pauseHours, 'Working:', workingHours);
+      console.log('Calculated - Total:', totalHours, 'Min Pause:', minPause, 'Actual Pause:', pauseMinutes, 'Working:', workingHours);
       
       hoursCell.textContent = totalHours.toFixed(1);    // Display total hours
       workHoursCell.textContent = workingHours.toFixed(1); // Display work hours
@@ -498,11 +515,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // ---------- Form Lock/Unlock ----------
   /**
-   * Locks the form when the week has been submitted (status is not 'offen')
+   * Locks the form when the week has been approved (status is 'bestaetigt')
    * Only locks rows that have data entered, empty rows remain editable
    */
   function lockForm() {
-    console.log('Locking form - week has been submitted');
+    console.log('Locking form - week has been approved');
     
     // Get all rows (excluding total row)
     const rows = timeTable.querySelectorAll('tbody tr:not(.total-row)');
@@ -737,7 +754,8 @@ document.addEventListener('DOMContentLoaded', function () {
           'offen': 'Offen',
           'gesendet': 'Gesendet',
           'bestaetigt': 'Bestätigt',
-          'erledigt': 'Erledigt'
+          'erledigt': 'Erledigt',
+          'korrektur': 'Korrektur'
         };
         statusText.textContent = statusMap[data.status] || data.status;
         
@@ -755,10 +773,13 @@ document.addEventListener('DOMContentLoaded', function () {
           case 'erledigt':
             statusText.style.color = '#3b82f6'; // Blue
             break;
+          case 'korrektur':
+            statusText.style.color = '#ef4444'; // Red
+            break;
         }
         
-        // Lock form if status is not 'offen'
-        if (data.status !== 'offen') {
+        // Only lock form if status is 'bestaetigt' (approved) - user can still edit until approved
+        if (data.status === 'bestaetigt') {
           lockForm();
         } else {
           unlockForm();

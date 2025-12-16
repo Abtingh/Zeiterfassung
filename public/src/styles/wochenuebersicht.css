@@ -115,6 +115,11 @@
     font-weight: bold;
 }
 
+.korrektur {
+    color: #ef4444;
+    font-weight: bold;
+}
+
 .sent {
     color: #FFA629;
     font-weight: bold;

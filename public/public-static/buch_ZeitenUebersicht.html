@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 
 <head>
     <meta charset="UTF-8">
@@ -7,7 +7,62 @@
     <title>Buchhaltung Zeiten Übersicht</title>
     <link rel="stylesheet" href="/src/styles/home.css">
     <link rel="stylesheet" href="/src/styles/zeitGenehmigen.css">
+    <link rel="stylesheet" href="/src/styles/zeitEintragen.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Status colors */
+        .status-offen {
+            color: #9e9e9e;
+        }
+
+        .status-gesendet {
+            color: #2196F3;
+        }
+
+        .status-bestaetigt {
+            color: #4CAF50;
+        }
+
+        .status-korrektur {
+            color: #ff9800;
+        }
+
+        .status-erledigt {
+            color: #9c27b0;
+        }
+
+        #teamHolder {
+            margin-left: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        #teamHolder span {
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* Override button style for Erledigt */
+        #submitBtn {
+            background-color: #1370AC !important;
+            color: white;
+            border: none;
+            width: 136px;
+            border-radius: 10px;
+            padding: 10px 32px;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        #submitBtn:hover {
+            background-color: #0f5a8a !important;
+        }
+
+        #submitBtn:disabled {
+            background-color: #ccc !important;
+            cursor: not-allowed;
+        }
+    </style>
 </head>
 
 <body>
@@ -33,24 +88,24 @@
             <div id="tableHeader">
                 <div id="dateAndWeek">
                     <div id="weekHolder">
-                        <p>3.Woche</p>
+                        <p>--.Woche</p>
                     </div>
                     <div id="dateHolder">
-                        <button id="prevBtn" class="iconBtn" aria-label="Vorheriger Monat">‹</button>
-                        <div id="date"> 16.06 - 22.06</div>
-                        <button id="nextBtn" class="iconBtn" aria-label="Nächster Monat">›</button>
+                        <button id="prevBtn" class="iconBtn" aria-label="Vorherige Woche">‹</button>
+                        <div id="date">--.--.--</div>
+                        <button id="nextBtn" class="iconBtn" aria-label="Nächste Woche">›</button>
                     </div>
                 </div>
                 <div id="studentDropDown">
                     <select id="studentSelect">
                         <option value="" disabled selected>Student auswählen</option>
-                        <option value="student1">Max Mustermann</option>
-                        <option value="student2">Erika Musterfrau</option>
-                        <option value="student3">John Doe</option>
                     </select>
                 </div>
+                <div id="teamHolder">
+                    <p>Team: <span id="teamName">--</span></p>
+                </div>
                 <div id="statusHolder">
-                    <p>Status: <span id="statusText">Bestätigt</span></p>
+                    <p>Status: <span id="statusText">--</span></p>
                 </div>
             </div>
             <div id="tableBody">
@@ -71,89 +126,85 @@
                         <tr>
                             <td class="day-label">Mo</td>
                             <td>
-                                <p class="first day">16.06</p>
+                                <p class="first day">--</p>
                             </td>
-                            <td><input type="time" class="time-input"></td>
-                            <td><input type="time" class="time-input"></td>
+                            <td><input type="time" class="time-input" disabled></td>
+                            <td><input type="time" class="time-input" disabled></td>
                             <td class="calculated-hours">-</td>
-                            <td><input type="number" class="pause-input" step="0.5" min="0" placeholder="0"></td>
+                            <td><input type="number" class="pause-input" step="1" min="0" placeholder="0" disabled></td>
                             <td class="work-hours">-</td>
-                            <td><input type="text" class="notes-input"></td>
+                            <td><input type="text" class="notes-input" disabled></td>
                         </tr>
                         <tr>
                             <td class="day-label">Di</td>
                             <td>
-                                <p class="second day">17.06</p>
+                                <p class="second day">--</p>
                             </td>
-                            <td><input type="time" class="time-input"></td>
-                            <td><input type="time" class="time-input"></td>
+                            <td><input type="time" class="time-input" disabled></td>
+                            <td><input type="time" class="time-input" disabled></td>
                             <td class="calculated-hours">-</td>
-                            <td><input type="number" class="pause-input" step="0.5" min="0" placeholder="0"></td>
+                            <td><input type="number" class="pause-input" step="1" min="0" placeholder="0" disabled></td>
                             <td class="work-hours">-</td>
-                            <td><input type="text" class="notes-input"></td>
+                            <td><input type="text" class="notes-input" disabled></td>
                         </tr>
                         <tr>
                             <td class="day-label">Mi</td>
                             <td>
-                                <p class="third day">18.06</p>
+                                <p class="third day">--</p>
                             </td>
-                            <td><input type="time" class="time-input"></td>
-                            <td><input type="time" class="time-input"></td>
+                            <td><input type="time" class="time-input" disabled></td>
+                            <td><input type="time" class="time-input" disabled></td>
                             <td class="calculated-hours">-</td>
-                            <td><input type="number" class="pause-input" step="0.5" min="0" placeholder="0"></td>
+                            <td><input type="number" class="pause-input" step="1" min="0" placeholder="0" disabled></td>
                             <td class="work-hours">-</td>
-                            <td><input type="text" class="notes-input"></td>
+                            <td><input type="text" class="notes-input" disabled></td>
                         </tr>
                         <tr>
                             <td class="day-label">Do</td>
                             <td>
-                                <p class="fourth day">19.06</p>
+                                <p class="fourth day">--</p>
                             </td>
-                            <td><input type="time" class="time-input"></td>
-                            <td><input type="time" class="time-input"></td>
+                            <td><input type="time" class="time-input" disabled></td>
+                            <td><input type="time" class="time-input" disabled></td>
                             <td class="calculated-hours">-</td>
-                            <td><input type="number" class="pause-input" step="0.5" min="0" placeholder="0"></td>
+                            <td><input type="number" class="pause-input" step="1" min="0" placeholder="0" disabled></td>
                             <td class="work-hours">-</td>
-                            <td><input type="text" class="notes-input"></td>
+                            <td><input type="text" class="notes-input" disabled></td>
                         </tr>
                         <tr>
                             <td class="day-label">Fr</td>
                             <td>
-                                <p class="fifth day">20.06</p>
+                                <p class="fifth day">--</p>
                             </td>
-                            <td><input type="time" class="time-input"></td>
-                            <td><input type="time" class="time-input"></td>
+                            <td><input type="time" class="time-input" disabled></td>
+                            <td><input type="time" class="time-input" disabled></td>
                             <td class="calculated-hours">-</td>
-                            <td><input type="number" class="pause-input" step="0.5" min="0" placeholder="0"></td>
+                            <td><input type="number" class="pause-input" step="1" min="0" placeholder="0" disabled></td>
                             <td class="work-hours">-</td>
-                            <td><input type="text" class="notes-input"></td>
+                            <td><input type="text" class="notes-input" disabled></td>
                         </tr>
                         <tr>
                             <td class="day-label">Sa</td>
                             <td>
-                                <p class="sixth day">21.06</p>
+                                <p class="sixth day">--</p>
                             </td>
-                            <td><input type="time" class="time-input" value="00:00" disabled></td>
-                            <td><input type="time" class="time-input" value="00:00" disabled></td>
-                            <td class="calculated-hours">0</td>
-                            <td>
-                                <p class="pause-time">0</p>
-                            </td>
-                            <td class="work-hours">0</td>
+                            <td><input type="time" class="time-input" disabled></td>
+                            <td><input type="time" class="time-input" disabled></td>
+                            <td class="calculated-hours">-</td>
+                            <td><input type="number" class="pause-input" step="1" min="0" placeholder="0" disabled></td>
+                            <td class="work-hours">-</td>
                             <td><input type="text" class="notes-input" disabled></td>
                         </tr>
                         <tr>
                             <td class="day-label">So</td>
                             <td>
-                                <p class="seventh day">22.06</p>
+                                <p class="seventh day">--</p>
                             </td>
-                            <td><input type="time" class="time-input" value="00:00" disabled></td>
-                            <td><input type="time" class="time-input" value="00:00" disabled></td>
-                            <td class="calculated-hours">0</td>
-                            <td>
-                                <p class="pause-time">0</p>
-                            </td>
-                            <td class="work-hours">0</td>
+                            <td><input type="time" class="time-input" disabled></td>
+                            <td><input type="time" class="time-input" disabled></td>
+                            <td class="calculated-hours">-</td>
+                            <td><input type="number" class="pause-input" step="1" min="0" placeholder="0" disabled></td>
+                            <td class="work-hours">-</td>
                             <td><input type="text" class="notes-input" disabled></td>
                         </tr>
                         <tr class="total-row">
@@ -165,24 +216,22 @@
                 </table>
             </div>
             <div id="btnGroup">
-                <button id="editBtn">korrigieren</button>
-                <button id="submitBtn">Freigeben</button>
+                <button id="submitBtn">Erledigt</button>
             </div>
         </div>
         <div id="navbar">
             <ul>
                 <li><img src="/assets/iconHome.svg" alt="Home"><a href="/home">Übersicht</a></li>
-                <li><img src="/assets/IconZeitEintragen.svg" alt=""><a href="/teamLeiter_ZeitGenehmigen.html">Zeiten
-                        genehmigen</a></li>
+                <li class="active"><img src="/assets/IconZeitEintragen.svg" alt=""><a href="#">Zeiten Übersicht</a>
+                </li>
             </ul>
         </div>
     </div>
     <script src="/src/services/logout.js"></script>
     <script src="/src/services/profileDropdown.js"></script>
     <script src="/src/services/userInfo.js"></script>
-    <script src="/src/services/weekCalculator.js"></script>
-    <script src="/src/services/timeCalculator.js"></script>
-
+    <script src="/src/services/accountingService.js"></script>
+    <script src="/src/services/accountingPage.js"></script>
 </body>
 
 </html>

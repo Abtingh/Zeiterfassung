@@ -38,9 +38,22 @@ func Register(mux *http.ServeMux, handler *handlers.Handler) {
 	mux.HandleFunc("/api/supervisor/students", middleware.NoCache(handler.GetStudentsForSupervisorHandler))
 	mux.HandleFunc("/api/supervisor/approve", middleware.NoCache(handler.ApproveSubmissionHandler))
 	mux.HandleFunc("/api/supervisor/reject", middleware.NoCache(handler.RejectSubmissionHandler))
+	mux.HandleFunc("/api/supervisor/submission-entries", middleware.NoCache(handler.GetTimeEntriesForSubmissionHandler))
+	mux.HandleFunc("/api/supervisor/student-week-status", middleware.NoCache(handler.GetStudentWeekStatusHandler))
 
 	// Supervisor pages
 	mux.HandleFunc("/ZeitGenehmigen", middleware.NoCache(handler.SupervisorZeitGenehmigenHandler))
+
+	// Accounting API endpoints
+	mux.HandleFunc("/api/accounting/approved-entries", middleware.NoCache(handler.GetApprovedSubmissionsHandler))
+	mux.HandleFunc("/api/accounting/students", middleware.NoCache(handler.GetAllStudentsHandler))
+	mux.HandleFunc("/api/accounting/student-submissions", middleware.NoCache(handler.GetApprovedSubmissionsForStudentHandler))
+	mux.HandleFunc("/api/accounting/all-student-submissions", middleware.NoCache(handler.GetAllSubmissionsForStudentHandler))
+	mux.HandleFunc("/api/accounting/mark-processed", middleware.NoCache(handler.MarkSubmissionAsProcessedHandler))
+	mux.HandleFunc("/api/accounting/processed-entries", middleware.NoCache(handler.GetProcessedSubmissionsHandler))
+
+	// Accounting pages
+	mux.HandleFunc("/ZeitenUebersicht", middleware.NoCache(handler.AccountingZeitenUebersichtHandler))
 
 	// Errors
 	mux.HandleFunc("/error/authentication", func(w http.ResponseWriter, r *http.Request) {

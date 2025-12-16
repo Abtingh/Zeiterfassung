@@ -113,7 +113,7 @@ function sameDay(a, b) {
  * @throws {Error} Logs error to console if 'weeksList' element is not found in DOM
  */
 
-function renderMonthWeeks(year, month0) {
+function renderMonthWeeks(year, month0, studentId = null) {
   const container = document.getElementById('wochenList');
   if (!container) {
     console.error("Element with id 'wochenList' not found in the DOM.");
@@ -146,6 +146,7 @@ function renderMonthWeeks(year, month0) {
   }
   
   console.log(`=== ${new Intl.DateTimeFormat('de-DE', { month: 'long', year: 'numeric' }).format(new Date(year, month0))} Week Ranges ===`);
+  console.log(`Rendering weeks for studentId: ${studentId}`);
 
   fridays.forEach((date, i) => {
     const weekDates = getWeekDates(date);
@@ -190,7 +191,8 @@ function renderMonthWeeks(year, month0) {
     console.log(`Month ${month0}, Week ${displayWeekNo} → Global Week ${globalWeekNumber}`);
     
     // Async fetch the status with the global week number
-    fetchWeekStatus(globalWeekNumber, year).then(status => {
+    // Pass studentId if it's provided (supervisor viewing student's status)
+    fetchWeekStatus(globalWeekNumber, year, studentId).then(status => {
       updateStatusDisplay(right, status);
     }).catch(() => {
       // Default to 'open' if fetch fails
@@ -217,10 +219,20 @@ function calculateGlobalWeekNumber(month0, weekInMonth) {
 
 /**
  * Fetches the status of a specific week from the backend
+ * @param {number} weekNumber - The global week number
+ * @param {number} year - The year
+ * @param {number|null} studentId - Optional student ID (for supervisor view)
  */
-async function fetchWeekStatus(weekNumber, year) {
+async function fetchWeekStatus(weekNumber, year, studentId = null) {
   try {
-    const response = await fetch(`/api/time-entries/week?week=${weekNumber}&year=${year}`, {
+    let url = `/api/time-entries/week?week=${weekNumber}&year=${year}`;
+    
+    // If studentId is provided (supervisor viewing student), use different endpoint
+    if (studentId) {
+      url = `/api/supervisor/student-week-status?week=${weekNumber}&year=${year}&student_id=${studentId}`;
+    }
+    
+    const response = await fetch(url, {
       method: 'GET',
       credentials: 'include'
     });
@@ -277,8 +289,21 @@ function updateStatusDisplay(element, status) {
       `;
       break;
 
+    case 'korrektur':
+      element.classList.add('korrektur');
+      element.innerHTML = `
+        <p>Korrektur</p>
+        <img src="/assets/iconNeedReview.svg" alt="">
+      `;
+      break;
+
     default:
-      element.innerHTML = `<p>—</p>`;
+      // Default to "Offen" when no submission exists or status is unknown
+      element.classList.add('open');
+      element.innerHTML = `
+        <p>Offen</p>
+        <img src="/assets/iconOpen.svg" alt="">
+      `;
       break;
   }
 }

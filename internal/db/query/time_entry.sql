@@ -187,3 +187,114 @@ SELECT EXISTS (
             ws.id = $1
             AND t.supervisor_id = $2
     ) AS is_authorized;
+
+-- =====================================================================
+-- ACCOUNTING (Buchhaltung) QUERIES
+-- =====================================================================
+
+-- name: GetApprovedSubmissions :many
+-- Get all weekly submissions with status 'bestaetigt' (approved) for accounting to process
+SELECT
+    ws.id,
+    ws.user_id,
+    ws.week_number,
+    ws.year,
+    ws.status,
+    ws.submitted_at,
+    ws.approved_at,
+    ws.processed_by,
+    u.first_name,
+    u.last_name,
+    u.email,
+    t.name as team_name
+FROM
+    weekly_submissions ws
+    JOIN users u ON ws.user_id = u.id
+    LEFT JOIN teams t ON u.team_id = t.id
+WHERE
+    ws.status = 'bestaetigt'
+ORDER BY ws.year DESC, ws.week_number DESC, u.last_name;
+
+-- name: GetAllStudents :many
+-- Get all students in the system for accounting dropdown
+SELECT u.id, u.first_name, u.last_name, u.email, u.team_id, t.name as team_name
+FROM users u
+    LEFT JOIN teams t ON u.team_id = t.id
+WHERE
+    u.role = 'student'
+ORDER BY u.last_name, u.first_name;
+
+-- name: GetSubmissionsForStudent :many
+-- Get all submissions for a specific student (for accounting view)
+SELECT ws.id, ws.user_id, ws.week_number, ws.year, ws.status, ws.submitted_at, ws.approved_at, ws.processed_by, ws.processed_at
+FROM weekly_submissions ws
+WHERE
+    ws.user_id = $1
+ORDER BY ws.year DESC, ws.week_number DESC;
+
+-- name: GetApprovedSubmissionsForStudent :many
+-- Get approved submissions for a specific student
+SELECT
+    ws.id,
+    ws.user_id,
+    ws.week_number,
+    ws.year,
+    ws.status,
+    ws.submitted_at,
+    ws.approved_at,
+    ws.processed_by,
+    u.first_name,
+    u.last_name,
+    u.email,
+    t.name as team_name
+FROM
+    weekly_submissions ws
+    JOIN users u ON ws.user_id = u.id
+    LEFT JOIN teams t ON u.team_id = t.id
+WHERE
+    ws.user_id = $1
+    AND ws.status = 'bestaetigt'
+ORDER BY ws.year DESC, ws.week_number DESC;
+
+-- name: MarkSubmissionAsProcessed :one
+-- Mark a submission as 'erledigt' (completed) by accounting
+UPDATE weekly_submissions
+SET
+    status = 'erledigt',
+    processed_by = $2,
+    processed_at = NOW(),
+    updated_at = NOW()
+WHERE
+    id = $1
+RETURNING
+    id,
+    user_id,
+    week_number,
+    year,
+    status,
+    processed_by,
+    processed_at;
+
+-- name: GetProcessedSubmissions :many
+-- Get all processed submissions (status = 'erledigt')
+SELECT
+    ws.id,
+    ws.user_id,
+    ws.week_number,
+    ws.year,
+    ws.status,
+    ws.submitted_at,
+    ws.approved_at,
+    ws.processed_by,
+    ws.processed_at,
+    u.first_name,
+    u.last_name,
+    u.email,
+    t.name as team_name
+FROM
+    weekly_submissions ws
+    JOIN users u ON ws.user_id = u.id
+    LEFT JOIN teams t ON u.team_id = t.id
+WHERE
+    ws.status = 'erledigt'
+ORDER BY ws.processed_at DESC;

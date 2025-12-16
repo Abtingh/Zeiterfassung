@@ -162,15 +162,18 @@ class TimeEntryService {
                 }
 
                 // Populate break - handle both formats
-                if (entry.break_min) {
+                if (entry.break_min !== undefined && entry.break_min !== null) {
                     let breakValue = 0;
                     if (typeof entry.break_min === 'number') {
                         breakValue = entry.break_min;
-                    } else if (entry.break_min.Valid) {
-                        breakValue = entry.break_min.Float64 || entry.break_min.Int64 || 0;
+                    } else if (typeof entry.break_min === 'object') {
+                        // Handle pgtype format - could be Int32, Int64, or Float64
+                        if (entry.break_min.Valid) {
+                            breakValue = entry.break_min.Int32 || entry.break_min.Int64 || entry.break_min.Float64 || 0;
+                        }
                     }
-                    if (breakValue > 0) {
-                        console.log('Setting break:', breakValue);
+                    console.log('Setting break:', breakValue, 'from:', entry.break_min);
+                    if (pauseInput) {
                         pauseInput.value = breakValue;
                     }
                 }
@@ -179,11 +182,18 @@ class TimeEntryService {
                 if (entry.note && entry.note.Valid) {
                     notesInput.value = entry.note.String;
                 }
-
-                // Trigger calculation
-                timeInputs[0].dispatchEvent(new Event('change'));
             }
         });
+
+        // Trigger recalculation for all rows AFTER all data is populated
+        setTimeout(() => {
+            rows.forEach(row => {
+                const timeInputs = row.querySelectorAll('.time-input:not([disabled])');
+                if (timeInputs.length > 0 && timeInputs[0].value) {
+                    timeInputs[0].dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            });
+        }, 100);
     }
 }
 

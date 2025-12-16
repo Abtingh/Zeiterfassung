@@ -133,6 +133,10 @@
     cursor: pointer;
 }
 
+#navbar ul li.active {
+    background-color: rgba(79, 195, 172, 0.5);
+}
+
 #navbar ul li img {
     min-width: 45px;
     min-height: 45px;

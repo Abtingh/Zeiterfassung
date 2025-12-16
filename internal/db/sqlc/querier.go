@@ -21,13 +21,26 @@ type Querier interface {
 	DeleteTeam(ctx context.Context, id int64) error
 	DeleteTimeEntriesBySubmission(ctx context.Context, submissionID uuid.UUID) error
 	DeleteUser(ctx context.Context, id int64) error
+	// Get all students in the system for accounting dropdown
+	GetAllStudents(ctx context.Context) ([]GetAllStudentsRow, error)
+	// =====================================================================
+	// ACCOUNTING (Buchhaltung) QUERIES
+	// =====================================================================
+	// Get all weekly submissions with status 'bestaetigt' (approved) for accounting to process
+	GetApprovedSubmissions(ctx context.Context) ([]GetApprovedSubmissionsRow, error)
+	// Get approved submissions for a specific student
+	GetApprovedSubmissionsForStudent(ctx context.Context, userID int64) ([]GetApprovedSubmissionsForStudentRow, error)
 	// Get all weekly submissions with status 'gesendet' for students under this supervisor
 	GetPendingSubmissionsForSupervisor(ctx context.Context, supervisorID pgtype.Int8) ([]GetPendingSubmissionsForSupervisorRow, error)
+	// Get all processed submissions (status = 'erledigt')
+	GetProcessedSubmissions(ctx context.Context) ([]GetProcessedSubmissionsRow, error)
 	GetPublicUserBySessionToken(ctx context.Context, sessionToken pgtype.Text) (GetPublicUserBySessionTokenRow, error)
 	// Get all students in a specific team
 	GetStudentByTeamID(ctx context.Context, teamID pgtype.Int8) ([]GetStudentByTeamIDRow, error)
 	// Get all students under this supervisor (from all their teams)
 	GetStudentsForSupervisor(ctx context.Context, supervisorID pgtype.Int8) ([]GetStudentsForSupervisorRow, error)
+	// Get all submissions for a specific student (for accounting view)
+	GetSubmissionsForStudent(ctx context.Context, userID int64) ([]GetSubmissionsForStudentRow, error)
 	// Get all teams where the user is a supervisor
 	GetSupervisorTeams(ctx context.Context, supervisorID pgtype.Int8) ([]GetSupervisorTeamsRow, error)
 	GetTimeEntriesBySubmission(ctx context.Context, submissionID uuid.UUID) ([]TimeEntry, error)
@@ -42,6 +55,8 @@ type Querier interface {
 	GetWeeklySubmissionsByID(ctx context.Context, id uuid.UUID) (WeeklySubmission, error)
 	ListTeams(ctx context.Context) ([]ListTeamsRow, error)
 	ListUsers(ctx context.Context) ([]ListUsersRow, error)
+	// Mark a submission as 'erledigt' (completed) by accounting
+	MarkSubmissionAsProcessed(ctx context.Context, arg MarkSubmissionAsProcessedParams) (MarkSubmissionAsProcessedRow, error)
 	// Reject a weekly submission (set status to 'korrektur')
 	RejectWeeklySubmission(ctx context.Context, arg RejectWeeklySubmissionParams) (RejectWeeklySubmissionRow, error)
 	UpdateTimeEntry(ctx context.Context, arg UpdateTimeEntryParams) (TimeEntry, error)

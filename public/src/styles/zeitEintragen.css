@@ -36,12 +36,19 @@
     margin-top: 5px;
 }
 
+#date {
+    width: 150px;
+    text-align: center;
+    display: inline-block;
+}
+
 #prevBtn, #nextBtn {
     background-color: transparent;
     border: none;
     font-size: 24px;
     cursor: pointer;
-    margin: 0 5px;
+    width: 30px;
+    flex-shrink: 0;
 }
 
 #statusHolder {
@@ -146,8 +153,8 @@
 }
 
 .pause-input {
-    border: none;
-    background: transparent;
+    border: 1px solid #d1d5db;
+    background: #f9fafb;
     text-align: center;
     font-size: 14px;
     width: 60px;
@@ -155,14 +162,19 @@
     border-radius: 4px;
 }
 
+.pause-input::placeholder {
+    color: #9ca3af;
+}
+
 .pause-input:focus {
     background-color: #F0F2FF;
     outline: 1px solid #6B73FF;
+    border-color: #6B73FF;
 }
 
 .notes-input {
-    border: none;
-    background: transparent;
+    border: 1px solid #d1d5db;
+    background: #f9fafb;
     text-align: center;
     font-size: 14px;
     width: 120px;
@@ -170,9 +182,14 @@
     border-radius: 4px;
 }
 
+.notes-input::placeholder {
+    color: #9ca3af;
+}
+
 .notes-input:focus {
     background-color: #F0F2FF;
     outline: 1px solid #6B73FF;
+    border-color: #6B73FF;
 }
 
 .calculated-hours,
@@ -257,12 +274,16 @@
     background-color: #1370AC;
     color: white;
     border: none;
-    width: 136px;
+    min-width: 136px;
     border-radius: 10px;
-    padding: 10px 32px;
+    padding: 10px 20px;
     font-size: 20px;
     cursor: pointer;
     margin-left: 40px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 #resetBtn {
