@@ -2,3 +2,6 @@ data/*
 !data/.gitkeep
 
 idea.txt
+plan.txt
+
+.env
