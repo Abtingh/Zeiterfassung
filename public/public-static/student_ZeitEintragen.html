@@ -30,6 +30,35 @@
     </div>
     <div id="main">
         <div id="mainContent">
+            <!-- AI Time Entry Component -->
+            <div id="aiEntryContainer">
+                <div id="aiEntryHeader">
+                    <span class="ai-icon">🤖</span>
+                    <h3>KI-Zeiteintrag</h3>
+                </div>
+                <div id="aiEntryBody">
+                    <textarea id="aiInput"
+                        placeholder="z.B. 'Gestern habe ich 3 Stunden am Website-Projekt gearbeitet' oder 'Heute 9-17 Uhr mit 30 Min Pause'"></textarea>
+                    <button id="aiParseBtn">
+                        <span id="aiBtnText">Mit KI ausfüllen</span>
+                        <span id="aiSpinner" class="hidden">⏳</span>
+                    </button>
+                </div>
+                <div id="aiResult" class="hidden">
+                    <p><strong>Erkannt:</strong></p>
+                    <ul>
+                        <li>📅 Datum: <span id="aiDate">-</span></li>
+                        <li>⏱️ Zeit: <span id="aiDuration">-</span></li>
+                        <li id="aiSpecialRow" class="hidden">🏷️ Status: <span id="aiSpecial">-</span></li>
+                    </ul>
+                    <div id="aiActions">
+                        <button id="aiApplyBtn" class="ai-apply-btn">Übernehmen</button>
+                        <button id="aiCancelBtn" class="ai-cancel-btn">Abbrechen</button>
+                    </div>
+                </div>
+                <div id="aiError" class="hidden"></div>
+            </div>
+
             <div id="tableHeader">
                 <div id="dateAndWeek">
                     <div id="weekHolder">
@@ -175,6 +204,7 @@
     <script src="/src/services/userInfo.js"></script>
     <script src="/src/services/timeEntry.js"></script>
     <script src="/src/services/timeCalculator.js"></script>
+    <script src="/src/services/aiTimeEntry.js"></script>
 
 </body>
 

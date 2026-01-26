@@ -47,6 +47,9 @@ func Register(mux *http.ServeMux, handler *handlers.Handler) {
 	mux.HandleFunc("/api/time-entries/submit", middleware.NoCache(handler.SubmitWeeklyTimeEntriesHandler))
 	mux.HandleFunc("/api/time-entries/week", middleware.NoCache(handler.GetWeeklyTimeEntriesHandler))
 
+	// AI API endpoints
+	mux.HandleFunc("/api/ai/parse-time-entry", middleware.NoCache(handler.AIParseTimeEntryHandler))
+
 	// Supervisor API endpoints
 	mux.HandleFunc("/api/supervisor/pending-entries", middleware.NoCache(handler.GetPendingTimeEntriesHandler))
 	mux.HandleFunc("/api/supervisor/students", middleware.NoCache(handler.GetStudentsForSupervisorHandler))
