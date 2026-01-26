@@ -99,7 +99,15 @@
                             <td class="calculated-hours">-</td>
                             <td><input type="number" class="pause-input" step="1" min="0" placeholder="Min."></td>
                             <td class="work-hours">-</td>
-                            <td><input type="text" class="notes-input" placeholder="Notiz..."></td>
+                            <td>
+                                <select class="status-select">
+                                    <option value="">-</option>
+                                    <option value="Krank">Krank</option>
+                                    <option value="Urlaub">Urlaub</option>
+                                    <option value="Feiertag">Feiertag</option>
+                                    <option value="Frei">Frei</option>
+                                </select>
+                            </td>
                         </tr>
                         <tr>
                             <td class="day-label">Di</td>
@@ -111,7 +119,15 @@
                             <td class="calculated-hours">-</td>
                             <td><input type="number" class="pause-input" step="1" min="0" placeholder="Min."></td>
                             <td class="work-hours">-</td>
-                            <td><input type="text" class="notes-input" placeholder="Notiz..."></td>
+                            <td>
+                                <select class="status-select">
+                                    <option value="">-</option>
+                                    <option value="Krank">Krank</option>
+                                    <option value="Urlaub">Urlaub</option>
+                                    <option value="Feiertag">Feiertag</option>
+                                    <option value="Frei">Frei</option>
+                                </select>
+                            </td>
                         </tr>
                         <tr>
                             <td class="day-label">Mi</td>
@@ -123,7 +139,15 @@
                             <td class="calculated-hours">-</td>
                             <td><input type="number" class="pause-input" step="1" min="0" placeholder="Min."></td>
                             <td class="work-hours">-</td>
-                            <td><input type="text" class="notes-input" placeholder="Notiz..."></td>
+                            <td>
+                                <select class="status-select">
+                                    <option value="">-</option>
+                                    <option value="Krank">Krank</option>
+                                    <option value="Urlaub">Urlaub</option>
+                                    <option value="Feiertag">Feiertag</option>
+                                    <option value="Frei">Frei</option>
+                                </select>
+                            </td>
                         </tr>
                         <tr>
                             <td class="day-label">Do</td>
@@ -135,7 +159,15 @@
                             <td class="calculated-hours">-</td>
                             <td><input type="number" class="pause-input" step="1" min="0" placeholder="Min."></td>
                             <td class="work-hours">-</td>
-                            <td><input type="text" class="notes-input" placeholder="Notiz..."></td>
+                            <td>
+                                <select class="status-select">
+                                    <option value="">-</option>
+                                    <option value="Krank">Krank</option>
+                                    <option value="Urlaub">Urlaub</option>
+                                    <option value="Feiertag">Feiertag</option>
+                                    <option value="Frei">Frei</option>
+                                </select>
+                            </td>
                         </tr>
                         <tr>
                             <td class="day-label">Fr</td>
@@ -147,7 +179,15 @@
                             <td class="calculated-hours">-</td>
                             <td><input type="number" class="pause-input" step="1" min="0" placeholder="Min."></td>
                             <td class="work-hours">-</td>
-                            <td><input type="text" class="notes-input" placeholder="Notiz..."></td>
+                            <td>
+                                <select class="status-select">
+                                    <option value="">-</option>
+                                    <option value="Krank">Krank</option>
+                                    <option value="Urlaub">Urlaub</option>
+                                    <option value="Feiertag">Feiertag</option>
+                                    <option value="Frei">Frei</option>
+                                </select>
+                            </td>
                         </tr>
                         <tr>
                             <td class="day-label">Sa</td>
@@ -161,7 +201,11 @@
                                 <p class="pause-time">0</p>
                             </td>
                             <td class="work-hours">0</td>
-                            <td><input type="text" class="notes-input" disabled></td>
+                            <td>
+                                <select class="status-select" disabled>
+                                    <option value="">-</option>
+                                </select>
+                            </td>
                         </tr>
                         <tr>
                             <td class="day-label">So</td>
@@ -175,7 +219,11 @@
                                 <p class="pause-time">0</p>
                             </td>
                             <td class="work-hours">0</td>
-                            <td><input type="text" class="notes-input" disabled></td>
+                            <td>
+                                <select class="status-select" disabled>
+                                    <option value="">-</option>
+                                </select>
+                            </td>
                         </tr>
                         <tr class="total-row">
                             <td colspan="6" class="total-label">Gesamt:</td>
@@ -204,6 +252,7 @@
     <script src="/src/services/userInfo.js"></script>
     <script src="/src/services/timeEntry.js"></script>
     <script src="/src/services/timeCalculator.js"></script>
+    <script src="/src/services/statusSelect.js"></script>
     <script src="/src/services/aiTimeEntry.js"></script>
 
 </body>

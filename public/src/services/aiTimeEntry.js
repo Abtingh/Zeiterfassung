@@ -114,6 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (text.includes('krank') || text.includes('sick')) return 'Krank';
         if (text.includes('urlaub') || text.includes('vacation') || text.includes('holiday')) return 'Urlaub';
         if (text.includes('feiertag') || text.includes('public holiday')) return 'Feiertag';
+        if (text.includes('frei') || text.includes('free') || text.includes('day off')) return 'Frei';
         return null;
     }
 
@@ -173,19 +174,26 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const notesInput = row.querySelector('.notes-input');
+        const statusSelect = row.querySelector('.status-select');
         const timeInputs = row.querySelectorAll('.time-input');
+        const pauseInput = row.querySelector('.pause-input');
         
-        // Check for special status (Krank, Urlaub, Feiertag)
+        // Check for special status (Krank, Urlaub, Feiertag, Frei)
         const specialStatus = getSpecialStatus(data);
         
         if (specialStatus) {
-            // For special cases, only fill the notes field
-            if (notesInput) {
-                notesInput.value = specialStatus;
+            // For special cases, set the dropdown and disable time fields
+            if (statusSelect) {
+                statusSelect.value = specialStatus;
+                statusSelect.dispatchEvent(new Event('change', { bubbles: true }));
             }
         } else {
-            // Normal time entry - fill times only
+            // Normal time entry - clear status and fill times
+            if (statusSelect) {
+                statusSelect.value = '';
+                statusSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            
             let startTime, endTime;
             
             if (data.startTime && data.endTime) {
