@@ -38,7 +38,7 @@
                 </div>
                 <div id="aiEntryBody">
                     <textarea id="aiInput"
-                        placeholder="z.B. 'Gestern habe ich 3 Stunden am Website-Projekt gearbeitet' oder 'Heute 9-17 Uhr mit 30 Min Pause'"></textarea>
+                        placeholder="z.B. 'Gestern habe ich 3 Stunden gearbeitet' oder 'Heute 9-17 Uhr mit 30 Min Pause'"></textarea>
                     <button id="aiParseBtn">
                         <span id="aiBtnText">Mit KI ausfüllen</span>
                         <span id="aiSpinner" class="hidden">⏳</span>
@@ -50,6 +50,11 @@
                         <li>📅 Datum: <span id="aiDate">-</span></li>
                         <li>⏱️ Zeit: <span id="aiDuration">-</span></li>
                         <li id="aiSpecialRow" class="hidden">🏷️ Status: <span id="aiSpecial">-</span></li>
+                        <li class="confidence-row">🎯 Sicherheit: <span id="aiConfidence">-</span>
+                            <div class="confidence-bar-container">
+                                <div id="aiConfidenceBar" class="confidence-bar"></div>
+                            </div>
+                        </li>
                     </ul>
                     <div id="aiActions">
                         <button id="aiApplyBtn" class="ai-apply-btn">Übernehmen</button>
@@ -59,183 +64,185 @@
                 <div id="aiError" class="hidden"></div>
             </div>
 
-            <div id="tableHeader">
-                <div id="dateAndWeek">
-                    <div id="weekHolder">
-                        <p>3.Woche</p>
+            <div id="tableWrapper">
+                <div id="tableHeader">
+                    <div id="dateAndWeek">
+                        <div id="weekHolder">
+                            <p>3.Woche</p>
+                        </div>
+                        <div id="dateHolder">
+                            <button id="prevBtn" class="iconBtn" aria-label="Vorheriger Monat">‹</button>
+                            <div id="date"> 16.06 - 22.06</div>
+                            <button id="nextBtn" class="iconBtn" aria-label="Nächster Monat">›</button>
+                        </div>
                     </div>
-                    <div id="dateHolder">
-                        <button id="prevBtn" class="iconBtn" aria-label="Vorheriger Monat">‹</button>
-                        <div id="date"> 16.06 - 22.06</div>
-                        <button id="nextBtn" class="iconBtn" aria-label="Nächster Monat">›</button>
+                    <div id="statusHolder">
+                        <p>Status: <span id="statusText">Offen</span></p>
                     </div>
                 </div>
-                <div id="statusHolder">
-                    <p>Status: <span id="statusText">Offen</span></p>
+                <div id="tableBody">
+                    <table id="timeTable">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>Datum</th>
+                                <th>Von</th>
+                                <th>Bis</th>
+                                <th>Stunden</th>
+                                <th>Pause<br>(Min.)</th>
+                                <th>Arbeits-<br>stunden</th>
+                                <th>Besonderheiten<br>(Bsp. Krank/<br>Urlaub)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="day-label">Mo</td>
+                                <td>
+                                    <p class="first day">16.06</p>
+                                </td>
+                                <td><input type="time" class="time-input"></td>
+                                <td><input type="time" class="time-input"></td>
+                                <td class="calculated-hours">-</td>
+                                <td><input type="number" class="pause-input" step="1" min="0" placeholder="Min."></td>
+                                <td class="work-hours">-</td>
+                                <td>
+                                    <select class="status-select">
+                                        <option value="">-</option>
+                                        <option value="Krank">Krank</option>
+                                        <option value="Urlaub">Urlaub</option>
+                                        <option value="Feiertag">Feiertag</option>
+                                        <option value="Frei">Frei</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="day-label">Di</td>
+                                <td>
+                                    <p class="second day">17.06</p>
+                                </td>
+                                <td><input type="time" class="time-input"></td>
+                                <td><input type="time" class="time-input"></td>
+                                <td class="calculated-hours">-</td>
+                                <td><input type="number" class="pause-input" step="1" min="0" placeholder="Min."></td>
+                                <td class="work-hours">-</td>
+                                <td>
+                                    <select class="status-select">
+                                        <option value="">-</option>
+                                        <option value="Krank">Krank</option>
+                                        <option value="Urlaub">Urlaub</option>
+                                        <option value="Feiertag">Feiertag</option>
+                                        <option value="Frei">Frei</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="day-label">Mi</td>
+                                <td>
+                                    <p class="third day">18.06</p>
+                                </td>
+                                <td><input type="time" class="time-input"></td>
+                                <td><input type="time" class="time-input"></td>
+                                <td class="calculated-hours">-</td>
+                                <td><input type="number" class="pause-input" step="1" min="0" placeholder="Min."></td>
+                                <td class="work-hours">-</td>
+                                <td>
+                                    <select class="status-select">
+                                        <option value="">-</option>
+                                        <option value="Krank">Krank</option>
+                                        <option value="Urlaub">Urlaub</option>
+                                        <option value="Feiertag">Feiertag</option>
+                                        <option value="Frei">Frei</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="day-label">Do</td>
+                                <td>
+                                    <p class="fourth day">19.06</p>
+                                </td>
+                                <td><input type="time" class="time-input"></td>
+                                <td><input type="time" class="time-input"></td>
+                                <td class="calculated-hours">-</td>
+                                <td><input type="number" class="pause-input" step="1" min="0" placeholder="Min."></td>
+                                <td class="work-hours">-</td>
+                                <td>
+                                    <select class="status-select">
+                                        <option value="">-</option>
+                                        <option value="Krank">Krank</option>
+                                        <option value="Urlaub">Urlaub</option>
+                                        <option value="Feiertag">Feiertag</option>
+                                        <option value="Frei">Frei</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="day-label">Fr</td>
+                                <td>
+                                    <p class="fifth day">20.06</p>
+                                </td>
+                                <td><input type="time" class="time-input"></td>
+                                <td><input type="time" class="time-input"></td>
+                                <td class="calculated-hours">-</td>
+                                <td><input type="number" class="pause-input" step="1" min="0" placeholder="Min."></td>
+                                <td class="work-hours">-</td>
+                                <td>
+                                    <select class="status-select">
+                                        <option value="">-</option>
+                                        <option value="Krank">Krank</option>
+                                        <option value="Urlaub">Urlaub</option>
+                                        <option value="Feiertag">Feiertag</option>
+                                        <option value="Frei">Frei</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="day-label">Sa</td>
+                                <td>
+                                    <p class="sixth day">21.06</p>
+                                </td>
+                                <td><input type="time" class="time-input" value="00:00" disabled></td>
+                                <td><input type="time" class="time-input" value="00:00" disabled></td>
+                                <td class="calculated-hours">0</td>
+                                <td>
+                                    <p class="pause-time">0</p>
+                                </td>
+                                <td class="work-hours">0</td>
+                                <td>
+                                    <select class="status-select" disabled>
+                                        <option value="">-</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="day-label">So</td>
+                                <td>
+                                    <p class="seventh day">22.06</p>
+                                </td>
+                                <td><input type="time" class="time-input" value="00:00" disabled></td>
+                                <td><input type="time" class="time-input" value="00:00" disabled></td>
+                                <td class="calculated-hours">0</td>
+                                <td>
+                                    <p class="pause-time">0</p>
+                                </td>
+                                <td class="work-hours">0</td>
+                                <td>
+                                    <select class="status-select" disabled>
+                                        <option value="">-</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr class="total-row">
+                                <td colspan="6" class="total-label">Gesamt:</td>
+                                <td id="totalWorkHours">-</td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
-            </div>
-            <div id="tableBody">
-                <table id="timeTable">
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th>Datum</th>
-                            <th>Von</th>
-                            <th>Bis</th>
-                            <th>Stunden</th>
-                            <th>Pause<br>(Min.)</th>
-                            <th>Arbeits-<br>stunden</th>
-                            <th>Besonderheiten<br>(Bsp. Krank/<br>Urlaub)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="day-label">Mo</td>
-                            <td>
-                                <p class="first day">16.06</p>
-                            </td>
-                            <td><input type="time" class="time-input"></td>
-                            <td><input type="time" class="time-input"></td>
-                            <td class="calculated-hours">-</td>
-                            <td><input type="number" class="pause-input" step="1" min="0" placeholder="Min."></td>
-                            <td class="work-hours">-</td>
-                            <td>
-                                <select class="status-select">
-                                    <option value="">-</option>
-                                    <option value="Krank">Krank</option>
-                                    <option value="Urlaub">Urlaub</option>
-                                    <option value="Feiertag">Feiertag</option>
-                                    <option value="Frei">Frei</option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="day-label">Di</td>
-                            <td>
-                                <p class="second day">17.06</p>
-                            </td>
-                            <td><input type="time" class="time-input"></td>
-                            <td><input type="time" class="time-input"></td>
-                            <td class="calculated-hours">-</td>
-                            <td><input type="number" class="pause-input" step="1" min="0" placeholder="Min."></td>
-                            <td class="work-hours">-</td>
-                            <td>
-                                <select class="status-select">
-                                    <option value="">-</option>
-                                    <option value="Krank">Krank</option>
-                                    <option value="Urlaub">Urlaub</option>
-                                    <option value="Feiertag">Feiertag</option>
-                                    <option value="Frei">Frei</option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="day-label">Mi</td>
-                            <td>
-                                <p class="third day">18.06</p>
-                            </td>
-                            <td><input type="time" class="time-input"></td>
-                            <td><input type="time" class="time-input"></td>
-                            <td class="calculated-hours">-</td>
-                            <td><input type="number" class="pause-input" step="1" min="0" placeholder="Min."></td>
-                            <td class="work-hours">-</td>
-                            <td>
-                                <select class="status-select">
-                                    <option value="">-</option>
-                                    <option value="Krank">Krank</option>
-                                    <option value="Urlaub">Urlaub</option>
-                                    <option value="Feiertag">Feiertag</option>
-                                    <option value="Frei">Frei</option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="day-label">Do</td>
-                            <td>
-                                <p class="fourth day">19.06</p>
-                            </td>
-                            <td><input type="time" class="time-input"></td>
-                            <td><input type="time" class="time-input"></td>
-                            <td class="calculated-hours">-</td>
-                            <td><input type="number" class="pause-input" step="1" min="0" placeholder="Min."></td>
-                            <td class="work-hours">-</td>
-                            <td>
-                                <select class="status-select">
-                                    <option value="">-</option>
-                                    <option value="Krank">Krank</option>
-                                    <option value="Urlaub">Urlaub</option>
-                                    <option value="Feiertag">Feiertag</option>
-                                    <option value="Frei">Frei</option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="day-label">Fr</td>
-                            <td>
-                                <p class="fifth day">20.06</p>
-                            </td>
-                            <td><input type="time" class="time-input"></td>
-                            <td><input type="time" class="time-input"></td>
-                            <td class="calculated-hours">-</td>
-                            <td><input type="number" class="pause-input" step="1" min="0" placeholder="Min."></td>
-                            <td class="work-hours">-</td>
-                            <td>
-                                <select class="status-select">
-                                    <option value="">-</option>
-                                    <option value="Krank">Krank</option>
-                                    <option value="Urlaub">Urlaub</option>
-                                    <option value="Feiertag">Feiertag</option>
-                                    <option value="Frei">Frei</option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="day-label">Sa</td>
-                            <td>
-                                <p class="sixth day">21.06</p>
-                            </td>
-                            <td><input type="time" class="time-input" value="00:00" disabled></td>
-                            <td><input type="time" class="time-input" value="00:00" disabled></td>
-                            <td class="calculated-hours">0</td>
-                            <td>
-                                <p class="pause-time">0</p>
-                            </td>
-                            <td class="work-hours">0</td>
-                            <td>
-                                <select class="status-select" disabled>
-                                    <option value="">-</option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="day-label">So</td>
-                            <td>
-                                <p class="seventh day">22.06</p>
-                            </td>
-                            <td><input type="time" class="time-input" value="00:00" disabled></td>
-                            <td><input type="time" class="time-input" value="00:00" disabled></td>
-                            <td class="calculated-hours">0</td>
-                            <td>
-                                <p class="pause-time">0</p>
-                            </td>
-                            <td class="work-hours">0</td>
-                            <td>
-                                <select class="status-select" disabled>
-                                    <option value="">-</option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr class="total-row">
-                            <td colspan="6" class="total-label">Gesamt:</td>
-                            <td id="totalWorkHours">-</td>
-                            <td></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div id="btnGroup">
-                <button id="resetBtn">Reset</button>
-                <button id="submitBtn">Senden</button>
+                <div id="btnGroup">
+                    <button id="resetBtn">Reset</button>
+                    <button id="submitBtn">Senden</button>
+                </div>
             </div>
         </div>
         <div id="navbar">

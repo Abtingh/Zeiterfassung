@@ -100,6 +100,42 @@
     margin-top: 15px;
 }
 
+/* Confidence Bar Styling */
+.confidence-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.confidence-bar-container {
+    flex: 1;
+    min-width: 100px;
+    max-width: 150px;
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.confidence-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.confidence-bar.confidence-high {
+    background: linear-gradient(90deg, #4caf50, #8bc34a);
+}
+
+.confidence-bar.confidence-medium {
+    background: linear-gradient(90deg, #ff9800, #ffc107);
+}
+
+.confidence-bar.confidence-low {
+    background: linear-gradient(90deg, #f44336, #ff5722);
+}
+
 #aiResult p {
     margin: 0 0 10px 0;
     color: #333;
@@ -169,37 +205,50 @@
     display: none !important;
 }
 
+/* Table Wrapper - contains header and table with same width */
+#tableWrapper {
+    display: inline-block;
+    margin: 0 auto;
+}
+
+/* Table Header - Week/Date on left, Status on right */
 #tableHeader {
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
-    width: 90%;
-    padding: 12px 16px 0;
-    margin-bottom: 20px;
+    width: 100%;
+    padding: 0;
+    margin-bottom: 8px;
 }
 
 #dateAndWeek {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
 }
 
 #weekHolder {
-    font-size: 18px;
-    font-weight: 500;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 2px;
+}
+
+#weekHolder p {
+    margin: 0;
 }
 
 #dateHolder {
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    margin-top: 5px;
+    justify-content: flex-start;
+    font-size: 16px;
+    color: #555;
 }
 
 #date {
-    width: 150px;
+    min-width: 120px;
     text-align: center;
     display: inline-block;
 }
@@ -207,14 +256,26 @@
 #prevBtn, #nextBtn {
     background-color: transparent;
     border: none;
-    font-size: 24px;
+    font-size: 20px;
     cursor: pointer;
-    width: 30px;
+    width: 24px;
     flex-shrink: 0;
+    padding: 0;
+    color: #555;
+}
+
+#prevBtn:hover, #nextBtn:hover {
+    color: #4A48AB;
 }
 
 #statusHolder {
-    font-size: 20px;
+    font-size: 16px;
+    color: #333;
+    text-align: right;
+}
+
+#statusHolder p {
+    margin: 0;
 }
 
 
@@ -245,11 +306,10 @@
 
 /* Table Styles */
 #timeTable {
-    width: 90%;
+    width: 100%;
     border-collapse: collapse;
     background-color: white;
     overflow: hidden;
-    margin: 0 auto;
 }
 
 #timeTable thead tr {
@@ -400,7 +460,6 @@
 /* Responsive adjustments */
 @media (max-width: 768px) {
     #timeTable {
-        width: 98%;
         font-size: 12px;
     }
     
@@ -427,9 +486,8 @@
 #btnGroup {
     display: flex;
     justify-content: flex-end;
-    margin: 25px 0;
-    width: 80%;
-
+    margin: 25px 0 50px 0;
+    width: 100%;
 }
 
 #submitBtn {
@@ -460,14 +518,6 @@
 
 /* Responsive styles for tablets (iPad) */
 @media (max-width: 1200px) {
-    #timeTable {
-        width: 95%;
-    }
-    
-    #tableHeader {
-        width: 95%;
-    }
-    
     #btnGroup {
         width: 85%;
     }
@@ -479,21 +529,19 @@
     }
     
     #tableHeader {
-        flex-wrap: wrap;
-        gap: 15px;
-        padding: 12px 10px 0;
+        gap: 10px;
     }
     
     #weekHolder {
-        font-size: 16px;
+        font-size: 14px;
     }
     
     #dateHolder {
-        font-size: 18px;
+        font-size: 14px;
     }
     
     #statusHolder {
-        font-size: 16px;
+        font-size: 14px;
     }
     
     #timeTable th {
@@ -545,20 +593,25 @@
         padding-bottom: 20px;
     }
     
-    #tableHeader {
+    #tableWrapper {
         width: 98%;
-        flex-direction: column;
-        align-items: center;
-        gap: 10px;
     }
     
     #dateAndWeek {
-        order: 1;
+        align-items: flex-start;
+    }
+    
+    #weekHolder {
+        font-size: 12px;
+    }
+    
+    #dateHolder {
+        font-size: 12px;
     }
     
     #statusHolder {
-        order: 2;
-        font-size: 14px;
+        font-size: 12px;
+        text-align: right;
     }
     
     #timeTable {

@@ -106,6 +106,22 @@ document.addEventListener('DOMContentLoaded', function() {
             specialRow.classList.add('hidden');
         }
         
+        // Display confidence score with color-coded bar
+        const confidence = data.confidence || 0;
+        document.getElementById('aiConfidence').textContent = confidence + '%';
+        const confidenceBar = document.getElementById('aiConfidenceBar');
+        confidenceBar.style.width = confidence + '%';
+        
+        // Color based on confidence level
+        confidenceBar.classList.remove('confidence-high', 'confidence-medium', 'confidence-low');
+        if (confidence >= 80) {
+            confidenceBar.classList.add('confidence-high');
+        } else if (confidence >= 50) {
+            confidenceBar.classList.add('confidence-medium');
+        } else {
+            confidenceBar.classList.add('confidence-low');
+        }
+        
         aiResult.classList.remove('hidden');
     }
     

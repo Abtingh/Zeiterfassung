@@ -20,6 +20,7 @@ type ParsedTimeEntry struct {
 	Description     string  `json:"description"`
 	StartTime       *string `json:"startTime"`
 	EndTime         *string `json:"endTime"`
+	Confidence      int     `json:"confidence"` // AI confidence score 0-100
 }
 
 // AIParseRequest is the request body for the AI parse endpoint

@@ -91,12 +91,12 @@
 #main {
     display: flex;
     flex-direction: row;
-    height: calc(100vh - 100px);
+    min-height: calc(100vh - 100px);
 }
 
 #mainContent {
     flex: 1;
-    padding: 40px 0 0 42px;
+    padding: 40px 0 40px 42px;
     background-color: #fff;
     order: 2;
     position: relative;
@@ -112,9 +112,10 @@
 #navbar {
     background-color: #E0E6ED;
     width: 346px;
-    min-height: 90vh;
+    min-height: calc(100vh - 100px);
     padding: 66px 23px 0 23px;
     order: 1;
+    align-self: stretch;
 }
 
 #navbar ul {
