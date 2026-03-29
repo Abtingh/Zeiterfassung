@@ -1,0 +1,33 @@
+name: Deploy to EC2
+
+# This workflow deploys the application to an EC2 instance whenever there is a push to the release branch.
+on:
+  push:
+    branches:
+      - release
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository
+      - name: Checkout the code
+        uses: actions/checkout@v3
+
+      # Set up SSH agent and deploy to EC2
+      - name: Deploy to AWS EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          script: |
+            # Navigate to the application directory
+            cd ~/Zeiterfassung
+
+            # Pull the latest changes from the release branch
+            git pull origin release
+
+            # Build and run the Docker containers
+            docker compose up -d --build
