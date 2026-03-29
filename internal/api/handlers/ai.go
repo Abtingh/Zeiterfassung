@@ -125,8 +125,13 @@ func (h *Handler) AIParseTimeEntryHandler(w http.ResponseWriter, r *http.Request
 
 // callN8NWebhook calls the n8n webhook and returns the parsed time entry
 func callN8NWebhook(webhookURL string, text string) (*ParsedTimeEntry, error) {
-	// Prepare request body
-	reqBody, err := json.Marshal(map[string]string{"text": text})
+	// Prepare request body with current date for context
+	// This helps the AI understand relative dates like "heute", "gestern", etc.
+	currentDate := time.Now().Format("2006-01-02")
+	reqBody, err := json.Marshal(map[string]string{
+		"text":        text,
+		"currentDate": currentDate,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
